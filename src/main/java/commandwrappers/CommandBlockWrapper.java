@@ -35,7 +35,7 @@ public class CommandBlockWrapper extends CommandWrapper
     @Override
     public byte[] getCWBuffer()
     {
-        ByteBuffer buffer = ByteBuffer.allocate(CBW_SIGNATURE);
+        ByteBuffer buffer = ByteBuffer.allocate(CBW_SIZE);
         buffer.putInt(dCBWSignature);
         buffer.putInt(dCBWTag);
         buffer.putInt(dCBWDataLength);
