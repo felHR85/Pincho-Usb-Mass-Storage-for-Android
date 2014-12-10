@@ -9,9 +9,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import commandwrappers.CommandStatusWrapper;
 import commandwrappers.CommandWrapper;
 
 /**
@@ -100,24 +97,45 @@ public class UsbFacade
         return false;
     }
 
+    public boolean reset()
+    {
+        return mConnection.controlTransfer(0x21, 0xff, 0x0000, massStorageInterface.getId(), null, 0, USB_TIMEOUT) >= 0;
+    }
+
+    public int getMaxLun()
+    {
+        byte[] buff = new byte[1];
+        int status = mConnection.controlTransfer(0xa1, 0xfe, 0x0000, massStorageInterface.getId(), buff, 1, USB_TIMEOUT);
+        if(status == 0)
+            return (int) buff[0];
+        else
+            return -1;
+    }
+
     public void sendCommand(byte[] cbwBuffer)
     {
-
+        outHandler.obtainMessage(CBW_TRANSPORT, cbwBuffer).sendToTarget();
     }
 
     public void sendData(byte[] data)
     {
-
+        outHandler.obtainMessage(DATA_FROM_HOST, data).sendToTarget();
     }
 
     public void requestCsw()
     {
-
+        inHandler.obtainMessage(CBS_TRANSPORT).sendToTarget();;
     }
 
     public void requestData()
     {
+        inHandler.obtainMessage(DATA_TO_HOST).sendToTarget();
+    }
 
+    public void close()
+    {
+        inHandler.getLooper().quit();
+        outHandler.getLooper().quit();
     }
 
     private class DataOutThread extends Thread
