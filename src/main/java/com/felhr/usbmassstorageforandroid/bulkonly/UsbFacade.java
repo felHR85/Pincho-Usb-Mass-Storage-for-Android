@@ -5,12 +5,27 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import commandwrappers.CommandStatusWrapper;
+import commandwrappers.CommandWrapper;
 
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 9/12/14.
  */
 public class UsbFacade
 {
+    private static final int USB_TIMEOUT = 500;
+    private static final int USB_TIMEOUT_2 = 5000;
+
+    private static final int CBW_TRANSPORT = 0;
+    private static final int DATA_FROM_HOST = 1;
+    private static final int DATA_TO_HOST = 3;
+    private static final int CBS_TRANSPORT = 4;
 
     private UsbDevice mDevice;
     private UsbDeviceConnection mConnection;
@@ -19,10 +34,22 @@ public class UsbFacade
     private UsbEndpoint inEndpoint;
     private UsbEndpoint outEndpoint;
 
+    private DataOutThread dataOutThread;
+    private DataInThread dataInThread;
+    private Handler outHandler;
+    private Handler inHandler;
+
+    private UsbFacadeInterface facadeInterface;
+
     public UsbFacade(UsbDevice mDevice, UsbDeviceConnection mConnection)
     {
         this.mDevice = mDevice;
         this.mConnection = mConnection;
+    }
+
+    public void setCallback(UsbFacadeInterface facadeInterface)
+    {
+        this.facadeInterface = facadeInterface;
     }
 
     public boolean openDevice()
@@ -30,7 +57,7 @@ public class UsbFacade
         int index = mDevice.getInterfaceCount();
         for(int i=0;i<=index-1;i++)
         {
-            UsbInterface iface = mDevice.getInterface(index);
+            UsbInterface iface = mDevice.getInterface(i);
             if(iface.getInterfaceClass() == UsbConstants.USB_CLASS_MASS_STORAGE && iface.getInterfaceSubclass() == 0x06
                     && iface.getInterfaceProtocol() == 0x50)
             {
@@ -40,7 +67,7 @@ public class UsbFacade
                     int endpointCount = massStorageInterface.getEndpointCount();
                     for(int j=0;j<=endpointCount-1;j++)
                     {
-                        UsbEndpoint endpoint = massStorageInterface.getEndpoint(j);
+                       UsbEndpoint endpoint = massStorageInterface.getEndpoint(j);
                        if(endpoint.getType() == UsbConstants.USB_ENDPOINT_XFER_BULK
                                && endpoint.getDirection() == UsbConstants.USB_DIR_IN)
                        {
@@ -54,6 +81,10 @@ public class UsbFacade
 
                     if(inEndpoint != null && outEndpoint != null)
                     {
+                        dataOutThread = new DataOutThread();
+                        dataOutThread.start();
+                        dataInThread = new DataInThread();
+                        dataInThread.start();
                         return true;
                     }else
                     {
@@ -67,5 +98,90 @@ public class UsbFacade
             }
         }
         return false;
+    }
+
+    public void sendCommand(byte[] cbwBuffer)
+    {
+
+    }
+
+    public void sendData(byte[] data)
+    {
+
+    }
+
+    public void requestCsw()
+    {
+
+    }
+
+    public void requestData()
+    {
+
+    }
+
+    private class DataOutThread extends Thread
+    {
+        @Override
+        public void run()
+        {
+            Looper.prepare();
+            outHandler = new Handler()
+            {
+                @Override
+                public void handleMessage(Message msg)
+                {
+                    byte[] buffer = (byte[]) msg.obj;
+                    int response = mConnection.bulkTransfer(outEndpoint, buffer, buffer.length, USB_TIMEOUT);
+                    switch(msg.what)
+                    {
+                        case CBW_TRANSPORT:
+                            if(facadeInterface != null)
+                                facadeInterface.cbwResponse(response);
+                            break;
+                        case DATA_FROM_HOST:
+                            if(facadeInterface != null)
+                                facadeInterface.dataFromHost(response);
+                            break;
+                    }
+                }
+            };
+            Looper.loop();
+        }
+
+    }
+
+    private class DataInThread extends Thread
+    {
+       @Override
+        public  void run()
+        {
+           Looper.prepare();
+           inHandler = new Handler()
+           {
+               @Override
+               public void handleMessage(Message msg)
+               {
+                    switch(msg.what)
+                    {
+                        case CBS_TRANSPORT:
+                            byte[] buffer = new byte[CommandWrapper.CBS_SIZE];
+                            mConnection.bulkTransfer(inEndpoint, buffer, CommandWrapper.CBS_SIZE, USB_TIMEOUT);
+                            if(facadeInterface != null)
+                                facadeInterface.cswData(buffer);
+                            break;
+                        case DATA_TO_HOST:
+                            int bufferLength = msg.arg1;
+                            byte[] dataBuffer = new byte[bufferLength];
+                            mConnection.bulkTransfer(inEndpoint, dataBuffer, bufferLength, USB_TIMEOUT_2);
+                            if(facadeInterface != null)
+                                facadeInterface.dataToHost(dataBuffer);
+                            break;
+                    }
+               }
+           };
+
+           Looper.loop();
+       }
     }
 }
