@@ -32,6 +32,11 @@ public class CommandBlockWrapper extends CommandWrapper
         this.commandBlock = new CommandBlock(data1, data2, data3, data4);
     }
 
+    public int getdCBWDataLength()
+    {
+        return dCBWDataLength;
+    }
+
     @Override
     public byte[] getCWBuffer()
     {
