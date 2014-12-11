@@ -127,9 +127,9 @@ public class UsbFacade
         inHandler.obtainMessage(CBS_TRANSPORT).sendToTarget();;
     }
 
-    public void requestData()
+    public void requestData(int dataSize)
     {
-        inHandler.obtainMessage(DATA_TO_HOST).sendToTarget();
+        inHandler.obtainMessage(DATA_TO_HOST, dataSize).sendToTarget();
     }
 
     public void close()
@@ -198,7 +198,6 @@ public class UsbFacade
                     }
                }
            };
-
            Looper.loop();
        }
     }

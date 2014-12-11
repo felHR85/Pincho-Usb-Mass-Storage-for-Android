@@ -22,7 +22,7 @@ public class CommandStatusWrapper extends CommandWrapper
         this.bCSWStatus = bCSWStatus;
     }
 
-    public CommandStatusWrapper getCWStatus(byte[] buffer)
+    public static CommandStatusWrapper getCWStatus(byte[] buffer)
     {
         int signature = convertToInt(Arrays.copyOfRange(buffer, 0, 4));
         int tag = convertToInt(Arrays.copyOfRange(buffer, 4, 4));
@@ -31,7 +31,7 @@ public class CommandStatusWrapper extends CommandWrapper
         return new CommandStatusWrapper(signature, tag, residue, status);
     }
 
-    private int convertToInt(byte[] buffer)
+    private static int convertToInt(byte[] buffer)
     {
         int result;
         result = buffer[0] & 0xff;
