@@ -48,7 +48,7 @@ public class SCSIInquiryResponse extends SCSIResponse
     {
         SCSIInquiryResponse response = new SCSIInquiryResponse();
         response.peripheralQualifier = data[0] >> 5;
-        data[0] &= (1 << 7);
+        data[0] &= ~(1 << 7);
         data[0] &= ~(1 << 6);
         data[0] &= ~(1 << 5);
         response.peripheralDeviceType = data[0];
