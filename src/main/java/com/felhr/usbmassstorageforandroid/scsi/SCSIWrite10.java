@@ -5,52 +5,43 @@ import java.nio.ByteBuffer;
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 16/12/14.
  */
-public class SCSIFormatUnit extends SCSICommand
+public class SCSIWrite10 extends SCSICommand
 {
-    public static final byte FORMATUNIT_OPERATION_CODE = 0x04;
+    public static byte WRITE10_OPERATION_CODE = 0x2a;
 
-    private boolean fmtpinfo;
-    private boolean rtoReq;
-    private boolean longList;
-    private boolean fmtData;
-    private boolean cmplst;
-    private int defectListFormat;
-    private byte vendorSpecific;
-    private byte control;
+    private int wrProtect;
+    private boolean dpo;
+    private boolean fua;
+    private boolean fuaNv;
+    private int logicalBlockAddress;
+    private int groupNumber;
+    private int transferLength;
+    private int control;
 
-    public SCSIFormatUnit(boolean fmtpinfo, boolean rtoReq, boolean longList,
-                          boolean fmtData, boolean cmplst, int defectListFormat)
+    private byte[] dataBuffer;
+
+    public SCSIWrite10(int wrProtect, boolean dpo, boolean fua,
+                       boolean fuaNv, int logicalBlockAddress, int groupNumber,
+                       int transferLength)
     {
-        this.dataTransportPhase = false;
-        this.direction = 0;
-        this.fmtpinfo = fmtpinfo;
-        this.rtoReq = rtoReq;
-        this.longList = longList;
-        this.fmtData = fmtData;
-        this.cmplst = cmplst;
-        this.defectListFormat = defectListFormat;
-        this.vendorSpecific = 0x00;
-        this.control = 0x00;
+        this.dataTransportPhase = true;
+        this.direction = 2;
+        this.wrProtect = wrProtect;
+        this.dpo = dpo;
+        this.fua = fua;
+        this.fuaNv = fuaNv;
+        this.logicalBlockAddress = logicalBlockAddress;
+        this.groupNumber = groupNumber;
+        this.transferLength = transferLength;
     }
 
     @Override
     public byte[] getSCSICommandBuffer()
     {
-        ByteBuffer buffer = ByteBuffer.allocate(1);
-        buffer.put(FORMATUNIT_OPERATION_CODE);
+        ByteBuffer buffer = ByteBuffer.allocate(10);
+        buffer.put(WRITE10_OPERATION_CODE);
         byte firstByte = 0x00;
-
-        if(fmtpinfo)
-            firstByte |= (1 << 7);
-        if(rtoReq)
-            firstByte |= (1 << 6);
-        if(longList)
-            firstByte |= (1 << 5);
-        if(fmtData)
-            firstByte |= (1 << 4);
-        if(cmplst)
-            firstByte |= (1 << 3);
-        switch(defectListFormat)
+        switch(wrProtect)
         {
             case 0:
                 firstByte &= ~(1 << 2);
@@ -91,12 +82,29 @@ public class SCSIFormatUnit extends SCSICommand
                 firstByte |= (1 << 1);
                 firstByte |= 1;
                 break;
-
         }
+
+        if(dpo)
+            firstByte |= (1 << 4);
+        if(fua)
+            firstByte |= (1 << 3);
+        if(fuaNv)
+            firstByte |= (1 << 1);
+
         buffer.put(firstByte);
-        buffer.put(vendorSpecific);
-        buffer.put((byte) 0x00);
-        buffer.put(control);
+        buffer.putInt(logicalBlockAddress);
+
+        buffer.putInt(groupNumber);
         return buffer.array();
+    }
+
+    public void setDataBuffer(byte[] buffer)
+    {
+        this.dataBuffer = buffer;
+    }
+
+    public byte[] getDataBuffer()
+    {
+        return dataBuffer;
     }
 }

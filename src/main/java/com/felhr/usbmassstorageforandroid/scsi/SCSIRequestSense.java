@@ -16,6 +16,8 @@ public class SCSIRequestSense extends SCSICommand
 
     public SCSIRequestSense(boolean desc, byte allocationLength)
     {
+        this.dataTransportPhase = true;
+        this.direction = 1;
         this.operationCode = REQUESTSENSE_OPERATION_CODE;
         this.desc = desc;
         this.allocationLength = allocationLength;

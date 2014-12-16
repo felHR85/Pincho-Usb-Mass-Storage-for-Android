@@ -11,7 +11,8 @@ public class SCSIRead10 extends SCSICommand
 
     public SCSIRead10()
     {
-
+        this.dataTransportPhase = true;
+        this.direction = 1;
     }
 
     @Override

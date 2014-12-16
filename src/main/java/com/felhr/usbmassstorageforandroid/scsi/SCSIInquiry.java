@@ -18,6 +18,8 @@ public class SCSIInquiry extends SCSICommand
 
     public SCSIInquiry(boolean evpd, byte pageCode, byte allocationLength)
     {
+        this.dataTransportPhase = true;
+        this.direction = 1;
         this.operationCode = INQUIRY_OPERATION_CODE;
         this.evpd = evpd;
         this.pageCode = pageCode;

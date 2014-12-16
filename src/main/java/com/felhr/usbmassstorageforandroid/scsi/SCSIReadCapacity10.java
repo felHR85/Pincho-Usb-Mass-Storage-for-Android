@@ -9,12 +9,14 @@ public class SCSIReadCapacity10 extends SCSICommand
 {
     public static final byte READCAPACITY10_OPERATION_CODE = 0x25;
 
-    private byte[] logicalBlockAddress;
+    private int logicalBlockAddress;
     private boolean pmi;
     private byte control;
 
-    public SCSIReadCapacity10(byte[] logicalBlockAddress, boolean pmi)
+    public SCSIReadCapacity10(int logicalBlockAddress, boolean pmi)
     {
+        this.dataTransportPhase = true;
+        this.direction = 1;
         this.logicalBlockAddress = logicalBlockAddress;
         this.pmi = pmi;
         this.control = 0x00;
@@ -26,7 +28,7 @@ public class SCSIReadCapacity10 extends SCSICommand
         ByteBuffer buffer = ByteBuffer.allocate(10);
         buffer.put(READCAPACITY10_OPERATION_CODE);
         buffer.put((byte) 0x00);
-        buffer.put(logicalBlockAddress);
+        buffer.putInt(logicalBlockAddress);
         buffer.put((byte) 0x00);
         buffer.put((byte) 0x00);
         byte pmiByte = 0x00;

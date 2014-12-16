@@ -5,6 +5,9 @@ package com.felhr.usbmassstorageforandroid.scsi;
  */
 public abstract class SCSICommand
 {
+    protected boolean dataTransportPhase;
+    protected int direction; // 0:NONE 1:IN(to host) 2:OUT(from host)
+
     public SCSICommand()
     {
 
@@ -14,4 +17,14 @@ public abstract class SCSICommand
         Serialize a SCSI command object into a stream of bytes
      */
     public abstract byte[] getSCSICommandBuffer();
+
+    public boolean hasDataPhase()
+    {
+        return dataTransportPhase;
+    }
+
+    public int getDirection()
+    {
+        return direction;
+    }
 }
