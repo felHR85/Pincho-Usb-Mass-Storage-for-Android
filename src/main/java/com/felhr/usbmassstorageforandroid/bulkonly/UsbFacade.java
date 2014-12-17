@@ -166,7 +166,6 @@ public class UsbFacade
             };
             Looper.loop();
         }
-
     }
 
     private class DataInThread extends Thread
