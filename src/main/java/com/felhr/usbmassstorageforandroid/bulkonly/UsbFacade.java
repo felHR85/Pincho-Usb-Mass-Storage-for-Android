@@ -54,11 +54,12 @@ public class UsbFacade
         int index = mDevice.getInterfaceCount();
         for(int i=0;i<=index-1;i++)
         {
-            UsbInterface iface = mDevice.getInterface(i);
-            if(iface.getInterfaceClass() == UsbConstants.USB_CLASS_MASS_STORAGE && iface.getInterfaceSubclass() == 0x06
-                    && iface.getInterfaceProtocol() == 0x50)
+            if(massStorageInterface == null) // Silly check only meaningful when testing
+                massStorageInterface = mDevice.getInterface(i);
+
+            if(massStorageInterface.getInterfaceClass() == UsbConstants.USB_CLASS_MASS_STORAGE && massStorageInterface.getInterfaceSubclass() == 0x06
+                    && massStorageInterface.getInterfaceProtocol() == 0x50)
             {
-                massStorageInterface = iface;
                 if(mConnection.claimInterface(massStorageInterface, true))
                 {
                     int endpointCount = massStorageInterface.getEndpointCount();
@@ -136,6 +137,22 @@ public class UsbFacade
     {
         inHandler.getLooper().quit();
         outHandler.getLooper().quit();
+    }
+
+    // Setter Injectors for Testing
+    public void injectInterface(UsbInterface usbInterface)
+    {
+        this.massStorageInterface = usbInterface;
+    }
+
+    public void injectInEndpoint(UsbEndpoint inEndpoint)
+    {
+        this.inEndpoint = inEndpoint;
+    }
+
+    public void injectOutEndpoint(UsbEndpoint outEndpoint)
+    {
+        this.outEndpoint = outEndpoint;
     }
 
     private class DataOutThread extends Thread
