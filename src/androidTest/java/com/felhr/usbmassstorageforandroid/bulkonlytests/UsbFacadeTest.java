@@ -9,20 +9,25 @@ import com.felhr.usbmassstorageforandroid.bulkonly.UsbFacade;
 import com.felhr.usbmassstorageforandroid.bulkonly.UsbFacadeInterface;
 
 import android.hardware.usb.UsbEndpoint;
+import android.test.InstrumentationTestCase;
+import android.util.Log;
+
+
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.junit.Before;
-import static org.junit.Assert.assertEquals;
 
 
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 17/12/14.
  */
-public class UsbFacadeTest
+public class UsbFacadeTest extends InstrumentationTestCase
 {
     private UsbFacade usbFacade;
 
     // Mocked Usb objects
+    @Mock
     private UsbDeviceConnection mConnection;
     private UsbDevice mDevice;
     private UsbInterface ifaceMocked;
@@ -32,17 +37,83 @@ public class UsbFacadeTest
     @Before
     public void setUp()
     {
+        System.setProperty("dexmaker.dexcache",
+                getInstrumentation().getTargetContext().getCacheDir().getPath());
+        initUsb(1);
+
+    }
+
+    @Test
+    public void testOpenDevice()
+    {
+        assertEquals(true, usbFacade.openDevice());
+    }
+
+    @Test
+    public void testSendCommand()
+    {
+        initUsb(31);
+        usbFacade.openDevice();
+        //changeBulkMethod(31, new byte[31]);
+        usbFacade.sendCommand(new byte[31]);
+        usbFacade.close();
+    }
+
+    @Test
+    public void testSendData()
+    {
+        initUsb(10);
+        usbFacade.openDevice();
+        //changeBulkMethod(10, new byte[]{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09});
+        usbFacade.sendData(new byte[]{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09});
+    }
+
+
+    /*
+    @Test
+    public void testRequestCsw()
+    {
+        //usbFacade.openDevice();
+        usbFacade.requestCsw();
+
+        synchronized(this)
+        {
+            try
+            {
+                wait(200);
+            }catch(InterruptedException e)
+            {
+                e.printStackTrace();
+            }
+
+        }
+    }
+   */
+
+    /*
+    @Test
+    public void testRequestData()
+    {
+        usbFacade.requestData(50);
+
+        synchronized(this)
+        {
+            try
+            {
+                wait(200);
+            }catch(InterruptedException e)
+            {
+                e.printStackTrace();
+            }
+
+        }
+    }
+    */
+
+    private void initUsb(int bulkResponse)
+    {
         mConnection = Mockito.mock(UsbDeviceConnection.class);
         mDevice = Mockito.mock(UsbDevice.class);
-
-        // UsbDeviceConnection mocked methods
-        Mockito.when(mConnection.claimInterface(Mockito.any(UsbInterface.class), true)).thenReturn(true);
-        Mockito.when(mConnection.bulkTransfer(
-                Mockito.any(UsbEndpoint.class),
-                new byte[]{0x00},2, 500)).thenReturn(1);
-
-        // UsbDevice mocked methods
-        Mockito.when(mDevice.getInterfaceCount()).thenReturn(0);
 
         // UsbInterface Mass storage device, Must be injected using a setter.
         ifaceMocked = Mockito.mock(UsbInterface.class);
@@ -55,43 +126,26 @@ public class UsbFacadeTest
         mockedInEndpoint = Mockito.mock(UsbEndpoint.class);
         mockedOutEndpoint = Mockito.mock(UsbEndpoint.class);
 
+        // UsbDeviceConnection mocked methods
+        Mockito.when(mConnection.claimInterface(ifaceMocked, true)).thenReturn(true);
+        Mockito.when(mConnection.bulkTransfer(mockedInEndpoint,
+                new byte[]{0x00},2, 500)).thenReturn(bulkResponse);
+
+        // UsbDevice mocked methods
+        Mockito.when(mDevice.getInterfaceCount()).thenReturn(1);
+
+
         // Initialize and inject dependencies
         usbFacade = new UsbFacade(mDevice, mConnection);
+        usbFacade.setCallback(mCallback);
         usbFacade.injectInterface(ifaceMocked);
         usbFacade.injectInEndpoint(mockedInEndpoint);
         usbFacade.injectOutEndpoint(mockedOutEndpoint);
-        usbFacade.setCallback(mCallback);
     }
 
-    @Test
-    public void openDevice()
+    private void changeBulkMethod(int response, byte[] buffer)
     {
-        assertEquals(true,usbFacade.openDevice());
-    }
-
-    @Test
-    public void sendCommand()
-    {
-        //TODO Instantiate again UsbFacade changing bulkTransfer behaviour
-        usbFacade.sendCommand(new byte[31]);
-    }
-
-    @Test
-    public void sendData(byte[] data)
-    {
-        usbFacade.sendData(new byte[]{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09});
-    }
-
-    @Test
-    public void requestCsw()
-    {
-        usbFacade.requestCsw();
-    }
-
-    @Test
-    public void requestData()
-    {
-
+        Mockito.when(mConnection.bulkTransfer(mockedInEndpoint, buffer, buffer.length, 500)).thenReturn(response);
     }
 
     private UsbFacadeInterface mCallback = new UsbFacadeInterface()
@@ -99,13 +153,13 @@ public class UsbFacadeTest
         @Override
         public void cbwResponse(int response)
         {
-
+            Log.v("UsbFacadeTest", "Response received: " + String.valueOf(response));
         }
 
         @Override
         public void cswData(byte[] data)
         {
-
+            Log.v("UsbFacadeTest", "Length buffer: " + String.valueOf(data.length));
         }
 
         @Override
@@ -117,7 +171,7 @@ public class UsbFacadeTest
         @Override
         public void dataToHost(byte[] data)
         {
-
+            Log.v("UsbFacadeTest", "Length buffer: " + String.valueOf(data.length));
         }
     };
 }

@@ -17,11 +17,19 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    packagingOptions {
+        exclude 'LICENSE.txt'
+    }
 }
 
 dependencies {
     androidTestCompile 'junit:junit:4.11'
-    androidTestCompile "org.mockito:mockito-core:1.+"
+    //androidTestCompile "org.mockito:mockito-core:1.+"
+    // Added 12-19
+    androidTestCompile 'org.mockito:mockito-core:1.9.+'
+    androidTestCompile 'com.google.dexmaker:dexmaker:1.+'
+    androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.+'
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:19.+'
 }
