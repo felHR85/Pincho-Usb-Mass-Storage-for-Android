@@ -39,8 +39,7 @@ public class UsbFacadeTest extends InstrumentationTestCase
     {
         System.setProperty("dexmaker.dexcache",
                 getInstrumentation().getTargetContext().getCacheDir().getPath());
-        initUsb(1);
-
+        initUsb(0);
     }
 
     @Test
@@ -49,66 +48,44 @@ public class UsbFacadeTest extends InstrumentationTestCase
         assertEquals(true, usbFacade.openDevice());
     }
 
+
     @Test
     public void testSendCommand()
     {
-        initUsb(31);
         usbFacade.openDevice();
-        //changeBulkMethod(31, new byte[31]);
+        waitXtime(1000);
+        changeBulkMethod(31);
         usbFacade.sendCommand(new byte[31]);
-        usbFacade.close();
+        waitXtime(1000);
     }
+
 
     @Test
     public void testSendData()
     {
-        initUsb(10);
         usbFacade.openDevice();
-        //changeBulkMethod(10, new byte[]{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09});
+        changeBulkMethod(10);
         usbFacade.sendData(new byte[]{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09});
     }
 
 
-    /*
+
     @Test
     public void testRequestCsw()
     {
-        //usbFacade.openDevice();
+        usbFacade.openDevice();
+        waitXtime(1000); // A handler must be declared inside a thread. This prevents a nullPointer
         usbFacade.requestCsw();
-
-        synchronized(this)
-        {
-            try
-            {
-                wait(200);
-            }catch(InterruptedException e)
-            {
-                e.printStackTrace();
-            }
-
-        }
     }
-   */
 
-    /*
+
     @Test
     public void testRequestData()
     {
+        usbFacade.openDevice();
+        waitXtime(1000);
         usbFacade.requestData(50);
-
-        synchronized(this)
-        {
-            try
-            {
-                wait(200);
-            }catch(InterruptedException e)
-            {
-                e.printStackTrace();
-            }
-
-        }
     }
-    */
 
     private void initUsb(int bulkResponse)
     {
@@ -128,8 +105,7 @@ public class UsbFacadeTest extends InstrumentationTestCase
 
         // UsbDeviceConnection mocked methods
         Mockito.when(mConnection.claimInterface(ifaceMocked, true)).thenReturn(true);
-        Mockito.when(mConnection.bulkTransfer(mockedInEndpoint,
-                new byte[]{0x00},2, 500)).thenReturn(bulkResponse);
+        Mockito.when(mConnection.bulkTransfer(Mockito.any(UsbEndpoint.class), Mockito.any(byte[].class) ,Mockito.anyInt(), Mockito.anyInt())).thenReturn(bulkResponse);
 
         // UsbDevice mocked methods
         Mockito.when(mDevice.getInterfaceCount()).thenReturn(1);
@@ -143,9 +119,20 @@ public class UsbFacadeTest extends InstrumentationTestCase
         usbFacade.injectOutEndpoint(mockedOutEndpoint);
     }
 
-    private void changeBulkMethod(int response, byte[] buffer)
+    private void changeBulkMethod(int response)
     {
-        Mockito.when(mConnection.bulkTransfer(mockedInEndpoint, buffer, buffer.length, 500)).thenReturn(response);
+        Mockito.when(mConnection.bulkTransfer(Mockito.any(UsbEndpoint.class), Mockito.any(byte[].class) ,Mockito.anyInt(), Mockito.anyInt())).thenReturn(response);
+    }
+
+    private synchronized void waitXtime(long millis)
+    {
+        try
+        {
+            wait(millis);
+        }catch(InterruptedException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     private UsbFacadeInterface mCallback = new UsbFacadeInterface()
@@ -153,25 +140,26 @@ public class UsbFacadeTest extends InstrumentationTestCase
         @Override
         public void cbwResponse(int response)
         {
-            Log.v("UsbFacadeTest", "Response received: " + String.valueOf(response));
+            Log.d("UsbFacadeTest", "cbwResponse: " + String.valueOf(response));
+
         }
 
         @Override
         public void cswData(byte[] data)
         {
-            Log.v("UsbFacadeTest", "Length buffer: " + String.valueOf(data.length));
+            Log.d("UsbFacadeTest", "cswData: " + String.valueOf(data.length));
         }
 
         @Override
         public void dataFromHost(int response)
         {
-
+            Log.d("UsbFacadeTest", "Data from Host response: " + String.valueOf(response));
         }
 
         @Override
         public void dataToHost(byte[] data)
         {
-            Log.v("UsbFacadeTest", "Length buffer: " + String.valueOf(data.length));
+            Log.d("UsbFacadeTest", "Length buffer: " + String.valueOf(data.length));
         }
     };
 }
