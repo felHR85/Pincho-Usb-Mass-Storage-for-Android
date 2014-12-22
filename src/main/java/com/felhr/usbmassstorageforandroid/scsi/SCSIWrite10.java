@@ -16,7 +16,7 @@ public class SCSIWrite10 extends SCSICommand
     private int logicalBlockAddress;
     private int groupNumber;
     private int transferLength;
-    private int control;
+    private byte control;
 
     private byte[] dataBuffer;
 
@@ -33,6 +33,7 @@ public class SCSIWrite10 extends SCSICommand
         this.logicalBlockAddress = logicalBlockAddress;
         this.groupNumber = groupNumber;
         this.transferLength = transferLength;
+        this.control = 0x00;
     }
 
     @Override
@@ -44,43 +45,43 @@ public class SCSIWrite10 extends SCSICommand
         switch(wrProtect)
         {
             case 0:
-                firstByte &= ~(1 << 2);
-                firstByte &= ~(1 << 1);
-                firstByte &= ~(1);
+                firstByte &= ~(1 << 7);
+                firstByte &= ~(1 << 6);
+                firstByte &= ~(1 << 5);
                 break;
             case 1:
-                firstByte &= ~(1 << 2);
-                firstByte &= ~(1 << 1);
-                firstByte |= 1;
+                firstByte &= ~(1 << 7);
+                firstByte &= ~(1 << 6);
+                firstByte |= (1 << 5);
                 break;
             case 2:
-                firstByte &= ~(1 << 2);
-                firstByte |= (1 << 1);
-                firstByte &= ~(1);
+                firstByte &= ~(1 << 7);
+                firstByte |= (1 << 6);
+                firstByte &= ~(1 << 5);
             case 3:
-                firstByte &= ~(1 << 2);
-                firstByte |= (1 << 1);
-                firstByte |= 1;
+                firstByte &= ~(1 << 7);
+                firstByte |= (1 << 6);
+                firstByte |= (1 << 5);
                 break;
             case 4:
-                firstByte |= (1 << 2);
-                firstByte &= ~(1 << 1);
-                firstByte &= ~(1);
+                firstByte |= (1 << 7);
+                firstByte &= ~(1 << 6);
+                firstByte &= ~(1 << 5);
                 break;
             case 5:
-                firstByte |= (1 << 2);
-                firstByte &= ~(1 << 1);
-                firstByte |= 1;
+                firstByte |= (1 << 7);
+                firstByte &= ~(1 << 6);
+                firstByte |= (1 << 5);
                 break;
             case 6:
-                firstByte |= (1 << 2);
-                firstByte |= (1 << 1);
-                firstByte &= ~(1);
+                firstByte |= (1 << 7);
+                firstByte |= (1 << 6);
+                firstByte &= ~(1 << 5);
                 break;
             case 7:
-                firstByte |= (1 << 2);
-                firstByte |= (1 << 1);
-                firstByte |= 1;
+                firstByte |= (1 << 7);
+                firstByte |= (1 << 6);
+                firstByte |= (1 << 5);
                 break;
         }
 
@@ -94,7 +95,9 @@ public class SCSIWrite10 extends SCSICommand
         buffer.put(firstByte);
         buffer.putInt(logicalBlockAddress);
 
-        buffer.putInt(groupNumber);
+        buffer.put(convertToByte(groupNumber));
+        buffer.put(convertToByte(transferLength));
+        buffer.put(control);
         return buffer.array();
     }
 

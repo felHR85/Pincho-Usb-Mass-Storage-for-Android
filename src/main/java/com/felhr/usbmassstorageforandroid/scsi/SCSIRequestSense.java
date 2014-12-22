@@ -11,10 +11,10 @@ public class SCSIRequestSense extends SCSICommand
 
     private byte operationCode;
     private boolean desc;
-    private byte allocationLength;
+    private int allocationLength;
     private byte control;
 
-    public SCSIRequestSense(boolean desc, byte allocationLength)
+    public SCSIRequestSense(boolean desc, int allocationLength)
     {
         this.dataTransportPhase = true;
         this.direction = 1;
@@ -33,7 +33,7 @@ public class SCSIRequestSense extends SCSICommand
             buffer.put((byte) 0x01);
         else
             buffer.put((byte) 0x00);
-        buffer.put(allocationLength);
+        buffer.put(convertToByte(allocationLength));
         buffer.put(control);
         return buffer.array();
     }

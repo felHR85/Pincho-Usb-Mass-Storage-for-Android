@@ -11,12 +11,12 @@ public class SCSIInquiry extends SCSICommand
 
     private byte operationCode;
     private boolean evpd;
-    private byte pageCode;
-    private byte allocationLength;
+    private int pageCode;
+    private int allocationLength;
     private byte control;
 
 
-    public SCSIInquiry(boolean evpd, byte pageCode, byte allocationLength)
+    public SCSIInquiry(boolean evpd, int pageCode, int allocationLength)
     {
         this.dataTransportPhase = true;
         this.direction = 1;
@@ -36,9 +36,9 @@ public class SCSIInquiry extends SCSICommand
             buffer.put((byte) 0x00);
         else
             buffer.put((byte) 0x01);
-        buffer.put(pageCode);
+        buffer.put(convertToByte(pageCode));
         buffer.put((byte) 0x00); // RESERVED byte
-        buffer.put(allocationLength);
+        buffer.put(convertToByte(allocationLength));
         buffer.put(control);
         return buffer.array();
     }
