@@ -40,7 +40,7 @@ public class SCSIModeSelect10 extends SCSICommand
         buffer.put(firstByte);
         buffer.put((byte) 0x00);
         buffer.put((byte) 0x00);
-        buffer.put(convertToByte(parameterListLength));
+        buffer.put(convertToByte(parameterListLength, 2));
         buffer.put(control);
         return buffer.array();
     }

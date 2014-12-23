@@ -36,9 +36,9 @@ public class SCSIInquiry extends SCSICommand
             buffer.put((byte) 0x00);
         else
             buffer.put((byte) 0x01);
-        buffer.put(convertToByte(pageCode));
+        buffer.put(convertToByte(pageCode, 1));
         buffer.put((byte) 0x00); // RESERVED byte
-        buffer.put(convertToByte(allocationLength));
+        buffer.put(convertToByte(allocationLength, 2));
         buffer.put(control);
         return buffer.array();
     }

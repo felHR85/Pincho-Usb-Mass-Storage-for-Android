@@ -66,10 +66,10 @@ public class SCSIModeSense10 extends SCSICommand
         }
         buffer.put(secondByte);
 
-        buffer.put(convertToByte(subPageCode));
+        buffer.put(convertToByte(subPageCode, 1));
         buffer.put((byte) 0x00);
         buffer.put((byte) 0x00);
-        buffer.put(convertToByte(allocationLength));
+        buffer.put(convertToByte(allocationLength, 2));
         buffer.put(control);
 
         return buffer.array();

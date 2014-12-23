@@ -28,31 +28,31 @@ public abstract class SCSICommand
         return direction;
     }
 
-    protected byte[] convertToByte(int number)
+    protected byte[] convertToByte(int number, int numberOfBytes)
     {
         byte[] buffer;
-        if(number >= 0x00 && number <= 0xff)
+        if(numberOfBytes == 1)
         {
             buffer = new byte[1];
             buffer[0] = (byte) number;
-        }else if(number > 0xff && number <= 0xffff)
+        }else if(numberOfBytes == 2)
         {
             buffer = new byte[2];
-            buffer[0] = (byte) (number & 0xff);
-            buffer[1] = (byte) (number >> 8 & 0xff);
-        }else if(number > 0xffff && number <= 0xffffff)
+            buffer[1] = (byte) (number & 0xff);
+            buffer[0] = (byte) (number >> 8 & 0xff);
+        }else if(numberOfBytes == 3)
         {
             buffer = new byte[3];
-            buffer[0] = (byte) (number & 0xff);
+            buffer[2] = (byte) (number & 0xff);
             buffer[1] = (byte) (number >> 8 & 0xff);
-            buffer[2] = (byte) (number >> 16 & 0xff);
-        }else if(number > 0xffffff && number <= 0xffffffff)
+            buffer[0] = (byte) (number >> 16 & 0xff);
+        }else if(numberOfBytes == 4)
         {
             buffer = new byte[4];
-            buffer[0] = (byte) (number & 0xff);
-            buffer[1] = (byte) (number >> 8 & 0xff);
-            buffer[2] = (byte) (number >> 16 & 0xff);
-            buffer[3] = (byte) (number >> 24 & 0xff);
+            buffer[3] = (byte) (number & 0xff);
+            buffer[2] = (byte) (number >> 8 & 0xff);
+            buffer[1] = (byte) (number >> 16 & 0xff);
+            buffer[0] = (byte) (number >> 24 & 0xff);
 
         }else
         {

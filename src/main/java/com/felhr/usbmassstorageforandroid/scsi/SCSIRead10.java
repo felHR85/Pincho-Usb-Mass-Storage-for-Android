@@ -95,8 +95,8 @@ public class SCSIRead10 extends SCSICommand
         buffer.put(firstByte);
         buffer.putInt(logicalBlockAddress);
 
-        buffer.put(convertToByte(groupNumber));
-        buffer.put(convertToByte(transferLength));
+        buffer.put(convertToByte(groupNumber, 1));
+        buffer.put(convertToByte(transferLength, 2));
         buffer.put(control);
         return buffer.array();
     }

@@ -33,7 +33,7 @@ public class SCSIRequestSense extends SCSICommand
             buffer.put((byte) 0x01);
         else
             buffer.put((byte) 0x00);
-        buffer.put(convertToByte(allocationLength));
+        buffer.put(convertToByte(allocationLength, 1));
         buffer.put(control);
         return buffer.array();
     }
