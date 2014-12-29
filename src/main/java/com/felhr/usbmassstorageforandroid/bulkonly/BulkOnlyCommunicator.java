@@ -67,6 +67,11 @@ public class BulkOnlyCommunicator
         return usbFacade.getMaxLun();
     }
 
+    public void injectUsbFacade(UsbFacade usbFacade)
+    {
+        this.usbFacade = usbFacade;
+    }
+
     private UsbFacadeInterface mCallback = new UsbFacadeInterface()
     {
         @Override

@@ -121,7 +121,7 @@ public class UsbFacadeTest extends InstrumentationTestCase
 
     private void changeBulkMethod(int response)
     {
-        Mockito.when(mConnection.bulkTransfer(Mockito.any(UsbEndpoint.class), Mockito.any(byte[].class) ,Mockito.anyInt(), Mockito.anyInt())).thenReturn(response);
+        Mockito.when(mConnection.bulkTransfer(Mockito.any(UsbEndpoint.class), Mockito.any(byte[].class) , Mockito.anyInt(), Mockito.anyInt())).thenReturn(response);
     }
 
     private synchronized void waitXtime(long millis)

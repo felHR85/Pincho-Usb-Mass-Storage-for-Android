@@ -26,4 +26,54 @@ public class SCSIModeSense10Response extends SCSIResponse
         response.blockDescriptorLength = (data[6] << 8) + (data[7]);
         return response;
     }
+
+    public int getModeDataLength()
+    {
+        return modeDataLength;
+    }
+
+    public void setModeDataLength(int modeDataLength)
+    {
+        this.modeDataLength = modeDataLength;
+    }
+
+    public int getMediumType()
+    {
+        return mediumType;
+    }
+
+    public void setMediumType(int mediumType)
+    {
+        this.mediumType = mediumType;
+    }
+
+    public int getDeviceSpecificParameter()
+    {
+        return deviceSpecificParameter;
+    }
+
+    public void setDeviceSpecificParameter(int deviceSpecificParameter)
+    {
+        this.deviceSpecificParameter = deviceSpecificParameter;
+    }
+
+    public boolean isLongLba()
+    {
+        return longLba;
+    }
+
+    public void setLongLba(boolean longLba)
+    {
+        this.longLba = longLba;
+    }
+
+    public int getBlockDescriptorLength()
+    {
+        return blockDescriptorLength;
+    }
+
+    public void setBlockDescriptorLength(int blockDescriptorLength)
+    {
+        this.blockDescriptorLength = blockDescriptorLength;
+    }
 }
