@@ -15,6 +15,9 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
+import commandwrappers.CommandBlockWrapper;
+import commandwrappers.CommandStatusWrapper;
+
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 17/12/14.
  */
@@ -28,6 +31,9 @@ public class BulkOnlyCommunicatorTest extends InstrumentationTestCase
     @Before
     public void setUp()
     {
+        System.setProperty("dexmaker.dexcache",
+                getInstrumentation().getTargetContext().getCacheDir().getPath());
+
         mockedUsbFacade = Mockito.mock(UsbFacade.class);
 
         Mockito.when(mockedUsbFacade.openDevice()).thenReturn(true);
@@ -41,23 +47,44 @@ public class BulkOnlyCommunicatorTest extends InstrumentationTestCase
         Mockito.doNothing().when(mockedUsbFacade).requestData(Mockito.anyInt());
         Mockito.doNothing().when(mockedUsbFacade).close();
 
-        mockedUsbFacade = new UsbFacade(Mockito.any(UsbDevice.class), Mockito.any(UsbDeviceConnection.class));
+        UsbDeviceConnection mConnection = Mockito.mock(UsbDeviceConnection.class);
+        UsbDevice mDevice = Mockito.mock(UsbDevice.class);
 
-        comm = new BulkOnlyCommunicator(Mockito.any(UsbDevice.class), Mockito.any(UsbDeviceConnection.class));
+        comm = new BulkOnlyCommunicator(mDevice,  mConnection);
         comm.injectUsbFacade(mockedUsbFacade);
     }
 
 
     @Test
-    public void startBulkOnlyTest()
+    public void testStartBulkOnly()
     {
-        assertEquals(true, comm.startBulkOnly(Mockito.any(BulkOnlyStatusInterface.class)));
+        BulkOnlyStatusInterface mockedInterface = Mockito.mock(BulkOnlyStatusInterface.class);
+        Mockito.doNothing().when(mockedInterface).onOperationStarted(Mockito.anyBoolean());
+        Mockito.doNothing().when(mockedInterface).onOperationCompleted(Mockito.any(CommandStatusWrapper.class));
+
+        assertEquals(true, comm.startBulkOnly(mockedInterface));
     }
 
     @Test
-    public void sendCbwTest()
+    public void testSendCbwTest()
     {
+        byte[] data = new byte[16];
+        CommandBlockWrapper mockedCb = Mockito.mock(CommandBlockWrapper.class);
+        Mockito.when(mockedCb.getdCBWDataLength()).thenReturn(16);
+        Mockito.when(mockedCb.getCWBuffer()).thenReturn(new byte[31]);
+        comm.sendCbw(mockedCb, data);
+    }
 
+    @Test
+    public void testReset()
+    {
+        comm.reset();
+    }
+
+    @Test
+    public void testGetMaxLuns()
+    {
+        assertEquals(1, comm.getMaxLun());
     }
 
 
