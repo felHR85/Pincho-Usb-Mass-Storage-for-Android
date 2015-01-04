@@ -27,6 +27,17 @@ public class CommandBlockWrapper extends CommandWrapper
         this.bCBWCBLength = bCBWCBLength;
     }
 
+    public CommandBlockWrapper( int dCBWDataLength,
+                                byte bmCBWFlags, byte bCBWLUN, byte bCBWCBLength)
+    {
+        this.dCBWSignature = CommandWrapper.CBW_SIGNATURE;
+        this.dCBWTag = generateTag();
+        this.dCBWDataLength = dCBWDataLength;
+        this.bmCBWFlags = bmCBWFlags;
+        this.bCBWLUN = bCBWLUN;
+        this.bCBWCBLength = bCBWCBLength;
+    }
+
     public void setCommandBlock(int data1, int data2, int data3, int data4)
     {
         this.commandBlock = new CommandBlock(data1, data2, data3, data4);
@@ -35,6 +46,11 @@ public class CommandBlockWrapper extends CommandWrapper
     public int getdCBWDataLength()
     {
         return dCBWDataLength;
+    }
+
+    public int generateTag()
+    {
+      return (int) (Math.random() * 0xffffffff);
     }
 
     @Override

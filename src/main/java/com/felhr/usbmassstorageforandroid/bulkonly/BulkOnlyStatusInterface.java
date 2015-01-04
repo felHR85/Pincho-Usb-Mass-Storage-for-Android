@@ -9,4 +9,5 @@ public interface BulkOnlyStatusInterface
 {
     public void onOperationStarted(boolean status);
     public void onOperationCompleted(CommandStatusWrapper csw);
+    public void onDataToHost(byte[] data);
 }

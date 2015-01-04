@@ -100,4 +100,78 @@ public class SCSIRead10 extends SCSICommand
         buffer.put(control);
         return buffer.array();
     }
+
+    public int getRdProtect()
+    {
+        return rdProtect;
+    }
+
+    public void setRdProtect(int rdProtect)
+    {
+        this.rdProtect = rdProtect;
+    }
+
+    public boolean isDpo()
+    {
+        return dpo;
+    }
+
+    public void setDpo(boolean dpo)
+    {
+        this.dpo = dpo;
+    }
+
+    public boolean isFua()
+    {
+        return fua;
+    }
+
+    public void setFua(boolean fua)
+    {
+        this.fua = fua;
+    }
+
+    public boolean isFuaNv()
+    {
+        return fuaNv;
+    }
+
+    public void setFuaNv(boolean fuaNv)
+    {
+        this.fuaNv = fuaNv;
+    }
+
+    public int getLogicalBlockAddress()
+    {
+        return logicalBlockAddress;
+    }
+
+    public void setLogicalBlockAddress(int logicalBlockAddress)
+    {
+        this.logicalBlockAddress = logicalBlockAddress;
+    }
+
+    public int getGroupNumber() {
+        return groupNumber;
+    }
+
+    public void setGroupNumber(int groupNumber) {
+        this.groupNumber = groupNumber;
+    }
+
+    public int getTransferLength() {
+        return transferLength;
+    }
+
+    public void setTransferLength(int transferLength) {
+        this.transferLength = transferLength;
+    }
+
+    public byte getControl() {
+        return control;
+    }
+
+    public void setControl(byte control) {
+        this.control = control;
+    }
 }

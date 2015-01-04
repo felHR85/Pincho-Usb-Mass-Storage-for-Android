@@ -114,7 +114,7 @@ public class BulkOnlyCommunicator
         {
             if(data != null)
             {
-                dataBufferIn = data;
+                statusCallback.onDataToHost(data);
                 usbFacade.requestCsw();
             }
         }
