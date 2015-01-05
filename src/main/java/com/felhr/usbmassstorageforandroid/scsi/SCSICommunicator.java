@@ -51,6 +51,65 @@ public class SCSICommunicator
         buffer.putCommand(cbw);
     }
 
+    public void readCapacity10()
+    {
+        //TODO
+    }
+
+    public void read10()
+    {
+        //TODO
+    }
+
+    public void requestSense()
+    {
+        //TODO
+    }
+
+    public void testUnitReady()
+    {
+        //TODO
+    }
+
+    public void write10()
+    {
+        //TODO
+    }
+
+    public void modeSelect10(boolean pageFormat, boolean savePages, int parameterListLength)
+    {
+        SCSIModeSelect10 modeSelect10 = new SCSIModeSelect10(pageFormat, savePages, parameterListLength);
+
+        byte[] rawInstruction = modeSelect10.getSCSICommandBuffer();
+        int dCBWDataTransferLength = parameterListLength; // MODE_SELECT10 Data phase OUT Endpoint???
+
+        byte bmCBWFlags = 0x00;
+
+        byte bCBWLUN = 0x00; // Check this!!!
+        byte bCBWCBLength = (byte) (rawInstruction.length);
+
+        CommandBlockWrapper cbw = new CommandBlockWrapper(dCBWDataTransferLength, bmCBWFlags, bCBWLUN, bCBWCBLength);
+        buffer.putCommand(cbw);
+    }
+
+    public void formatUnit(boolean fmtpinfo, boolean rtoReq, boolean longList,
+                           boolean fmtData, boolean cmplst, int defectListFormat)
+    {
+        SCSIFormatUnit formatUnit = new SCSIFormatUnit(fmtpinfo, rtoReq, longList,
+                fmtData, cmplst, defectListFormat);
+
+        byte[] rawInstruction = formatUnit.getSCSICommandBuffer();
+        int dCBWDataTransferLength = 0;
+
+        byte bmCBWFlags = 0x00;
+
+        byte bCBWLUN = 0x00; // Check this!!!
+        byte bCBWCBLength = (byte) (rawInstruction.length);
+
+        CommandBlockWrapper cbw = new CommandBlockWrapper(dCBWDataTransferLength, bmCBWFlags, bCBWLUN, bCBWCBLength);
+        buffer.putCommand(cbw);
+    }
+
     private BulkOnlyStatusInterface mCallback = new BulkOnlyStatusInterface()
     {
         @Override

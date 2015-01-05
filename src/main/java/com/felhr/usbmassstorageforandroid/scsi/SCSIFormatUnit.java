@@ -21,7 +21,7 @@ public class SCSIFormatUnit extends SCSICommand
     public SCSIFormatUnit(boolean fmtpinfo, boolean rtoReq, boolean longList,
                           boolean fmtData, boolean cmplst, int defectListFormat)
     {
-        this.dataTransportPhase = false;
+        this.dataTransportPhase = true; // Format Unit can send data during data-phase
         this.direction = 0;
         this.fmtpinfo = fmtpinfo;
         this.rtoReq = rtoReq;
