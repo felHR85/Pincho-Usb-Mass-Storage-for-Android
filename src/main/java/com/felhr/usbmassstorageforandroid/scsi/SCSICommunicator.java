@@ -42,7 +42,7 @@ public class SCSICommunicator
 
         byte bmCBWFlags = 0x00;
 
-        bmCBWFlags |= (1 << 7); // From device to host (Inquiry Instruction)
+        bmCBWFlags |= (1 << 7); // From device to host
 
         byte bCBWLUN = 0x00; // Check this!!!
         byte bCBWCBLength = (byte) (rawInstruction.length);
@@ -51,19 +51,62 @@ public class SCSICommunicator
         buffer.putCommand(cbw);
     }
 
-    public void readCapacity10()
+    public void readCapacity10(int logicalBlockAddress, boolean pmi)
     {
-        //TODO
+        SCSIReadCapacity10 readCapacity10 = new SCSIReadCapacity10(logicalBlockAddress, pmi);
+
+        byte[] rawInstruction = readCapacity10.getSCSICommandBuffer();
+        int dCBWDataTransferLength = 8;
+
+        byte bmCBWFlags = 0x00;
+
+        bmCBWFlags |= (1 << 7); // From device to host
+
+        byte bCBWLUN = 0x00; // Check this!!!
+        byte bCBWCBLength = (byte) (rawInstruction.length);
+
+        CommandBlockWrapper cbw = new CommandBlockWrapper(dCBWDataTransferLength, bmCBWFlags, bCBWLUN, bCBWCBLength);
+        buffer.putCommand(cbw);
     }
 
-    public void read10()
+    public void read10(int rdProtect, boolean dpo, boolean fua,
+                       boolean fuaNv, int logicalBlockAddress,
+                       int groupNumber, int transferLength)
     {
-        //TODO
+        SCSIRead10 read10 = new SCSIRead10(rdProtect, dpo, fua,
+                fuaNv, logicalBlockAddress, groupNumber,
+                transferLength);
+
+        byte[] rawInstruction = read10.getSCSICommandBuffer();
+        int dCBWDataTransferLength = transferLength;
+
+        byte bmCBWFlags = 0x00;
+
+        bmCBWFlags |= (1 << 7); // From device to host
+
+        byte bCBWLUN = 0x00; // Check this!!!
+        byte bCBWCBLength = (byte) (rawInstruction.length);
+
+        CommandBlockWrapper cbw = new CommandBlockWrapper(dCBWDataTransferLength, bmCBWFlags, bCBWLUN, bCBWCBLength);
+        buffer.putCommand(cbw);
     }
 
-    public void requestSense()
+    public void requestSense(boolean desc, int allocationLength)
     {
-        //TODO
+        SCSIRequestSense requestSense = new SCSIRequestSense(desc, allocationLength);
+
+        byte[] rawInstruction = requestSense.getSCSICommandBuffer();
+        int dCBWDataTransferLength = allocationLength;
+
+        byte bmCBWFlags = 0x00;
+
+        bmCBWFlags |= (1 << 7); // From device to host
+
+        byte bCBWLUN = 0x00; // Check this!!!
+        byte bCBWCBLength = (byte) (rawInstruction.length);
+
+        CommandBlockWrapper cbw = new CommandBlockWrapper(dCBWDataTransferLength, bmCBWFlags, bCBWLUN, bCBWCBLength);
+        buffer.putCommand(cbw);
     }
 
     public void testUnitReady()
