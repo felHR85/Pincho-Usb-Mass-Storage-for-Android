@@ -134,11 +134,6 @@ public class SCSICommunicator
                 SCSICommand scsiCommand = buffer.getCommand();
                 CommandBlockWrapper cbw = scsiCommand.getCbw();
                 communicator.sendCbw(cbw, scsiCommand.getDataPhaseBuffer());
-                // Wait till BulkOnly protocol status is READY
-                // Trying to get SCSI command after a CSW has been received.
-                // This thread will be waiting till a CSW notification is received,
-                // and that SCSI command is not the last command.
-                // in that case it wont wait here.
             }
         }
 
