@@ -8,24 +8,24 @@ import commandwrappers.CommandBlockWrapper;
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 4/1/15.
  */
-public class CommandBlockBuffer
+public class SCSICommandBuffer
 {
-    private LinkedList<CommandBlockWrapper> commands;
+    private LinkedList<SCSICommand> commands;
     private AtomicBoolean ready;
 
-    public CommandBlockBuffer()
+    public SCSICommandBuffer()
     {
-        this.commands = new LinkedList<CommandBlockWrapper>();
+        this.commands = new LinkedList<SCSICommand>();
         this.ready = new AtomicBoolean(true);
     }
 
-    public synchronized void putCommand(CommandBlockWrapper command)
+    public synchronized void putCommand(SCSICommand command)
     {
         commands.push(command);
         notify();
     }
 
-    public synchronized CommandBlockWrapper getCommand()
+    public synchronized SCSICommand getCommand()
     {
         if(commands.size() == 0 || !ready.get())
         {

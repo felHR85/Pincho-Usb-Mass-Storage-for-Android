@@ -17,13 +17,13 @@ import commandwrappers.CommandStatusWrapper;
 public class SCSICommunicator
 {
     private BulkOnlyCommunicator communicator;
-    private CommandBlockBuffer buffer;
+    private SCSICommandBuffer buffer;
     private SCSICommandHandler commandHandler;
 
     public SCSICommunicator(UsbDevice mDevice, UsbDeviceConnection mConnection)
     {
         this.communicator = new BulkOnlyCommunicator(mDevice, mConnection);
-        this.buffer = new CommandBlockBuffer();
+        this.buffer = new SCSICommandBuffer();
         this.commandHandler = new SCSICommandHandler();
         this.commandHandler.start();
     }
@@ -36,37 +36,13 @@ public class SCSICommunicator
     public void inquiry(boolean evpd, int pageCode, int allocationLength)
     {
         SCSIInquiry inquiry = new SCSIInquiry(evpd, pageCode, allocationLength);
-
-        byte[] rawInstruction = inquiry.getSCSICommandBuffer();
-        int dCBWDataTransferLength = allocationLength;
-
-        byte bmCBWFlags = 0x00;
-
-        bmCBWFlags |= (1 << 7); // From device to host
-
-        byte bCBWLUN = 0x00; // Check this!!!
-        byte bCBWCBLength = (byte) (rawInstruction.length);
-
-        CommandBlockWrapper cbw = new CommandBlockWrapper(dCBWDataTransferLength, bmCBWFlags, bCBWLUN, bCBWCBLength);
-        buffer.putCommand(cbw);
+        buffer.putCommand(inquiry);
     }
 
     public void readCapacity10(int logicalBlockAddress, boolean pmi)
     {
         SCSIReadCapacity10 readCapacity10 = new SCSIReadCapacity10(logicalBlockAddress, pmi);
-
-        byte[] rawInstruction = readCapacity10.getSCSICommandBuffer();
-        int dCBWDataTransferLength = 8;
-
-        byte bmCBWFlags = 0x00;
-
-        bmCBWFlags |= (1 << 7); // From device to host
-
-        byte bCBWLUN = 0x00; // Check this!!!
-        byte bCBWCBLength = (byte) (rawInstruction.length);
-
-        CommandBlockWrapper cbw = new CommandBlockWrapper(dCBWDataTransferLength, bmCBWFlags, bCBWLUN, bCBWCBLength);
-        buffer.putCommand(cbw);
+        buffer.putCommand(readCapacity10);
     }
 
     public void read10(int rdProtect, boolean dpo, boolean fua,
@@ -77,62 +53,37 @@ public class SCSICommunicator
                 fuaNv, logicalBlockAddress, groupNumber,
                 transferLength);
 
-        byte[] rawInstruction = read10.getSCSICommandBuffer();
-        int dCBWDataTransferLength = transferLength;
-
-        byte bmCBWFlags = 0x00;
-
-        bmCBWFlags |= (1 << 7); // From device to host
-
-        byte bCBWLUN = 0x00; // Check this!!!
-        byte bCBWCBLength = (byte) (rawInstruction.length);
-
-        CommandBlockWrapper cbw = new CommandBlockWrapper(dCBWDataTransferLength, bmCBWFlags, bCBWLUN, bCBWCBLength);
-        buffer.putCommand(cbw);
+        buffer.putCommand(read10);
     }
 
     public void requestSense(boolean desc, int allocationLength)
     {
         SCSIRequestSense requestSense = new SCSIRequestSense(desc, allocationLength);
-
-        byte[] rawInstruction = requestSense.getSCSICommandBuffer();
-        int dCBWDataTransferLength = allocationLength;
-
-        byte bmCBWFlags = 0x00;
-
-        bmCBWFlags |= (1 << 7); // From device to host
-
-        byte bCBWLUN = 0x00; // Check this!!!
-        byte bCBWCBLength = (byte) (rawInstruction.length);
-
-        CommandBlockWrapper cbw = new CommandBlockWrapper(dCBWDataTransferLength, bmCBWFlags, bCBWLUN, bCBWCBLength);
-        buffer.putCommand(cbw);
+        buffer.putCommand(requestSense);
     }
 
     public void testUnitReady()
     {
-        //TODO
+        SCSITestUnitReady testUnitReady = new SCSITestUnitReady();
+        buffer.putCommand(testUnitReady);
     }
 
-    public void write10()
+    public void write10(int wrProtect, boolean dpo, boolean fua,
+                        boolean fuaNv, int logicalBlockAddress, int groupNumber,
+                        int transferLength, byte[] data)
     {
-        //TODO
+       SCSIWrite10 write10 = new SCSIWrite10(wrProtect, dpo, fua,
+               fuaNv, logicalBlockAddress, groupNumber,
+               transferLength);
+
+        write10.setDataPhaseBuffer(data);
+        buffer.putCommand(write10);
     }
 
     public void modeSelect10(boolean pageFormat, boolean savePages, int parameterListLength)
     {
         SCSIModeSelect10 modeSelect10 = new SCSIModeSelect10(pageFormat, savePages, parameterListLength);
-
-        byte[] rawInstruction = modeSelect10.getSCSICommandBuffer();
-        int dCBWDataTransferLength = parameterListLength; // MODE_SELECT10 Data phase OUT Endpoint???
-
-        byte bmCBWFlags = 0x00;
-
-        byte bCBWLUN = 0x00; // Check this!!!
-        byte bCBWCBLength = (byte) (rawInstruction.length);
-
-        CommandBlockWrapper cbw = new CommandBlockWrapper(dCBWDataTransferLength, bmCBWFlags, bCBWLUN, bCBWCBLength);
-        buffer.putCommand(cbw);
+        buffer.putCommand(modeSelect10);
     }
 
     public void formatUnit(boolean fmtpinfo, boolean rtoReq, boolean longList,
@@ -141,16 +92,7 @@ public class SCSICommunicator
         SCSIFormatUnit formatUnit = new SCSIFormatUnit(fmtpinfo, rtoReq, longList,
                 fmtData, cmplst, defectListFormat);
 
-        byte[] rawInstruction = formatUnit.getSCSICommandBuffer();
-        int dCBWDataTransferLength = 0;
-
-        byte bmCBWFlags = 0x00;
-
-        byte bCBWLUN = 0x00; // Check this!!!
-        byte bCBWCBLength = (byte) (rawInstruction.length);
-
-        CommandBlockWrapper cbw = new CommandBlockWrapper(dCBWDataTransferLength, bmCBWFlags, bCBWLUN, bCBWCBLength);
-        buffer.putCommand(cbw);
+        buffer.putCommand(formatUnit);
     }
 
     private BulkOnlyStatusInterface mCallback = new BulkOnlyStatusInterface()
@@ -189,8 +131,14 @@ public class SCSICommunicator
         {
             while(keep.get())
             {
-                CommandBlockWrapper cbw = buffer.getCommand();
-                communicator.sendCbw(cbw, null); // NOT ALWAYS NULL!!!
+                SCSICommand scsiCommand = buffer.getCommand();
+                CommandBlockWrapper cbw = scsiCommand.getCbw();
+                communicator.sendCbw(cbw, scsiCommand.getDataPhaseBuffer());
+                // Wait till BulkOnly protocol status is READY
+                // Trying to get SCSI command after a CSW has been received.
+                // This thread will be waiting till a CSW notification is received,
+                // and that SCSI command is not the last command.
+                // in that case it wont wait here.
             }
         }
 
@@ -199,9 +147,4 @@ public class SCSICommunicator
             keep.set(false);
         }
     }
-
-
-
 }
-
-

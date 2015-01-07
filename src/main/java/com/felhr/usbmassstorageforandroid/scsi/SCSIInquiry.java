@@ -2,6 +2,8 @@ package com.felhr.usbmassstorageforandroid.scsi;
 
 import java.nio.ByteBuffer;
 
+import commandwrappers.CommandBlockWrapper;
+
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 12/12/14.
  */
@@ -41,5 +43,34 @@ public class SCSIInquiry extends SCSICommand
         buffer.put(convertToByte(allocationLength, 2));
         buffer.put(control);
         return buffer.array();
+    }
+
+    @Override
+    public CommandBlockWrapper getCbw()
+    {
+        byte[] rawCommand = this.getSCSICommandBuffer();
+        int dCBWDataTransferLength = allocationLength;
+
+        byte bmCBWFlags = 0x00;
+
+        bmCBWFlags |= (1 << 7); // From device to host
+
+        byte bCBWLUN = 0x00; // Check this!!!
+        byte bCBWCBLength = (byte) (rawCommand.length);
+
+        CommandBlockWrapper cbw = new CommandBlockWrapper(dCBWDataTransferLength, bmCBWFlags, bCBWLUN, bCBWCBLength);
+        return cbw;
+    }
+
+    @Override
+    public void setDataPhaseBuffer(byte[] data)
+    {
+
+    }
+
+    @Override
+    public byte[] getDataPhaseBuffer()
+    {
+        return null;
     }
 }

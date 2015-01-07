@@ -2,6 +2,8 @@ package com.felhr.usbmassstorageforandroid.scsi;
 
 import java.nio.ByteBuffer;
 
+import commandwrappers.CommandBlockWrapper;
+
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 16/12/14.
  */
@@ -17,8 +19,6 @@ public class SCSIWrite10 extends SCSICommand
     private int groupNumber;
     private int transferLength;
     private byte control;
-
-    private byte[] dataBuffer;
 
     public SCSIWrite10(int wrProtect, boolean dpo, boolean fua,
                        boolean fuaNv, int logicalBlockAddress, int groupNumber,
@@ -101,13 +101,30 @@ public class SCSIWrite10 extends SCSICommand
         return buffer.array();
     }
 
-    public void setDataBuffer(byte[] buffer)
+    @Override
+    public CommandBlockWrapper getCbw()
     {
-        this.dataBuffer = buffer;
+        byte[] rawInstruction = this.getSCSICommandBuffer();
+        int dCBWDataTransferLength = transferLength;
+
+        byte bmCBWFlags = 0x00;
+
+        byte bCBWLUN = 0x00; // Check this!!!
+        byte bCBWCBLength = (byte) (rawInstruction.length);
+
+        CommandBlockWrapper cbw = new CommandBlockWrapper(dCBWDataTransferLength, bmCBWFlags, bCBWLUN, bCBWCBLength);
+        return cbw;
     }
 
-    public byte[] getDataBuffer()
+    @Override
+    public void setDataPhaseBuffer(byte[] data)
     {
-        return dataBuffer;
+        this.dataBuffer = data;
+    }
+
+    @Override
+    public byte[] getDataPhaseBuffer()
+    {
+        return this.dataBuffer;
     }
 }

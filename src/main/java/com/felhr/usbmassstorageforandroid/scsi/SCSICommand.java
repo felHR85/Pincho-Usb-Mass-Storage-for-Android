@@ -1,10 +1,13 @@
 package com.felhr.usbmassstorageforandroid.scsi;
 
+import commandwrappers.CommandBlockWrapper;
+
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 12/12/14.
  */
 public abstract class SCSICommand
 {
+    protected byte[] dataBuffer;
     protected boolean dataTransportPhase;
     protected int direction; // 0:NONE 1:IN(to host) 2:OUT(from host)
 
@@ -17,6 +20,23 @@ public abstract class SCSICommand
         Serialize a SCSI command object into a stream of bytes
      */
     public abstract byte[] getSCSICommandBuffer();
+
+    /*
+        Get a Command Block wrapper from a SCSI command
+     */
+    public abstract CommandBlockWrapper getCbw();
+
+    /*
+        Set data from the data-phase buffer
+     */
+    public abstract void setDataPhaseBuffer(byte[] data);
+
+    /*
+        Get data from the data-phase buffer
+     */
+    public abstract byte[] getDataPhaseBuffer();
+
+
 
     public boolean hasDataPhase() // This will be called by the SCSI command handler
     {
@@ -60,4 +80,5 @@ public abstract class SCSICommand
         }
         return buffer;
     }
+
 }

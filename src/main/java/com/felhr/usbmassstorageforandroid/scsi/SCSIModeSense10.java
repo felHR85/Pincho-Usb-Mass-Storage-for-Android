@@ -2,6 +2,8 @@ package com.felhr.usbmassstorageforandroid.scsi;
 
 import java.nio.ByteBuffer;
 
+import commandwrappers.CommandBlockWrapper;
+
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 22/12/14.
  */
@@ -73,5 +75,25 @@ public class SCSIModeSense10 extends SCSICommand
         buffer.put(control);
 
         return buffer.array();
+    }
+
+    @Override
+    public CommandBlockWrapper getCbw()
+    {
+        //TODO
+        return null;
+    }
+
+
+    @Override
+    public void setDataPhaseBuffer(byte[] data)
+    {
+
+    }
+
+    @Override
+    public byte[] getDataPhaseBuffer()
+    {
+        return null;
     }
 }
