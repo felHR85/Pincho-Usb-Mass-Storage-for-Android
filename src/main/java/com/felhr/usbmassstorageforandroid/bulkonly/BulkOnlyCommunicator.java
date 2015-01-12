@@ -62,9 +62,24 @@ public class BulkOnlyCommunicator
         return usbFacade.reset();
     }
 
+    public boolean resetRecovery()
+    {
+        return usbFacade.reset() & usbFacade.clearFeatureIN() & usbFacade.clearFeatureOUT();
+    }
+
     public int getMaxLun()
     {
         return usbFacade.getMaxLun();
+    }
+
+    public boolean clearFeatureIn()
+    {
+        return usbFacade.clearFeatureIN();
+    }
+
+    public boolean clearFeatureOut()
+    {
+        return usbFacade.clearFeatureOUT();
     }
 
     public void injectUsbFacade(UsbFacade usbFacade)

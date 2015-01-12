@@ -103,6 +103,19 @@ public class UsbFacade
         return mConnection.controlTransfer(0x21, 0xff, 0x0000, massStorageInterface.getId(), null, 0, USB_TIMEOUT) >= 0;
     }
 
+    /*
+        http://www.beyondlogic.org/usbnutshell/usb6.shtml
+     */
+    public boolean clearFeatureIN()
+    {
+        return mConnection.controlTransfer(0x02, 0x01, 0x00, 0x00, null, 0, USB_TIMEOUT) == 0;
+    }
+
+    public boolean clearFeatureOUT()
+    {
+        return mConnection.controlTransfer(0x02, 0x01, 0x00, 0x81, null, 0, USB_TIMEOUT) == 0;
+    }
+
     public int getMaxLun()
     {
         byte[] buff = new byte[1];

@@ -113,6 +113,9 @@ public class SCSICommunicator
         @Override
         public void onOperationCompleted(CommandStatusWrapper csw)
         {
+            if(csw.getbCSWStatus() == 0x02)
+              communicator.resetRecovery();
+
             scsiInterfaceCallback.onSCSIOperationCompleted((int) csw.getbCSWStatus(), csw.getdCSWDataResidue());
             buffer.goAhead();
         }
