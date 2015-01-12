@@ -12,7 +12,7 @@ public class SCSIRead10Response extends SCSIResponse
 
     }
 
-    public SCSIRead10Response getResponse(byte[] data)
+    public static SCSIRead10Response getResponse(byte[] data)
     {
         SCSIRead10Response response = new SCSIRead10Response();
         response.readBuffer = data;

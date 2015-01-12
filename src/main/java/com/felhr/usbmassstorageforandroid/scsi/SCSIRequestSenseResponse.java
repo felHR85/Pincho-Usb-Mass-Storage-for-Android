@@ -28,7 +28,7 @@ public class SCSIRequestSenseResponse extends SCSIResponse
 
     }
 
-    public SCSIRequestSenseResponse getResponse(byte[] data)
+    public static SCSIRequestSenseResponse getResponse(byte[] data)
     {
         SCSIRequestSenseResponse response = new SCSIRequestSenseResponse();
         response.valid = (data[0] & (1 << 7)) == (1 << 7);

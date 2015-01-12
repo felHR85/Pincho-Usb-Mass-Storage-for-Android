@@ -13,7 +13,7 @@ public class SCSIReportLunsResponse extends SCSIResponse
 
     }
 
-    public SCSIReportLunsResponse getResponse(byte[] data)
+    public static SCSIReportLunsResponse getResponse(byte[] data)
     {
         SCSIReportLunsResponse response = new SCSIReportLunsResponse();
         response.lunListLength = (data[0] << 24) + (data[1] << 16) + (data[2] << 8) + data[3];

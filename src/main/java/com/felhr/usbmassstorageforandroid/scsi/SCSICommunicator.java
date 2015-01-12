@@ -16,6 +16,7 @@ import commandwrappers.CommandStatusWrapper;
  */
 public class SCSICommunicator
 {
+    private SCSIInterface scsiInterfaceCallback;
     private BulkOnlyCommunicator communicator;
     private SCSICommandBuffer buffer;
     private SCSICommandHandler commandHandler;
@@ -28,9 +29,15 @@ public class SCSICommunicator
         this.commandHandler.start();
     }
 
-    public boolean openSCSICommunicator()
+    public boolean openSCSICommunicator(SCSIInterface scsiInterfaceCallback)
     {
+        this.scsiInterfaceCallback = scsiInterfaceCallback;
         return communicator.startBulkOnly(mCallback);
+    }
+
+    public void closeSCSICommunicator()
+    {
+        commandHandler.stopHandler();
     }
 
     public void inquiry(boolean evpd, int pageCode, int allocationLength)
@@ -100,26 +107,49 @@ public class SCSICommunicator
         @Override
         public void onOperationStarted(boolean status)
         {
-
+            scsiInterfaceCallback.onSCSIOperationStarted(status);
         }
 
         @Override
         public void onOperationCompleted(CommandStatusWrapper csw)
         {
-            // Check Status
+            scsiInterfaceCallback.onSCSIOperationCompleted((int) csw.getbCSWStatus(), csw.getdCSWDataResidue());
             buffer.goAhead();
         }
 
         @Override
         public void onDataToHost(byte[] data)
         {
-
+            SCSICommand lastCommand = commandHandler.getLastSCSICommand();
+            SCSIResponse response = null;
+            if(lastCommand instanceof SCSIInquiry)
+            {
+                response = SCSIInquiryResponse.getResponse(data);
+            }else if(lastCommand instanceof SCSIModeSense10)
+            {
+                response = SCSIModeSense10Response.getResponse(data);
+            }else if(lastCommand instanceof SCSIRead10)
+            {
+                response = SCSIRead10Response.getResponse(data);
+            }else if(lastCommand instanceof SCSIReadCapacity10)
+            {
+                response = SCSIReadCapacity10Response.getResponse(data);
+            }else if(lastCommand instanceof SCSIReportLuns)
+            {
+                response = SCSIReportLunsResponse.getResponse(data);
+            }else if(lastCommand instanceof SCSIRequestSense)
+            {
+                response = SCSIRequestSenseResponse.getResponse(data);
+            }
+            scsiInterfaceCallback.onSCSIDataReceived(response);
         }
     };
 
     private class SCSICommandHandler extends Thread
     {
         private AtomicBoolean keep;
+
+        private SCSICommand lastCommand;
 
         public SCSICommandHandler()
         {
@@ -132,6 +162,7 @@ public class SCSICommunicator
             while(keep.get())
             {
                 SCSICommand scsiCommand = buffer.getCommand();
+                lastCommand = scsiCommand;
                 CommandBlockWrapper cbw = scsiCommand.getCbw();
                 communicator.sendCbw(cbw, scsiCommand.getDataPhaseBuffer());
             }
@@ -140,6 +171,11 @@ public class SCSICommunicator
         public void stopHandler()
         {
             keep.set(false);
+        }
+
+        public SCSICommand getLastSCSICommand()
+        {
+            return lastCommand;
         }
     }
 }

@@ -50,4 +50,44 @@ public class CommandStatusWrapper extends CommandWrapper
         buffer.put(bCSWStatus);
         return buffer.array();
     }
+
+    public int getdCSWSignature()
+    {
+        return dCSWSignature;
+    }
+
+    public void setdCSWSignature(int dCSWSignature)
+    {
+        this.dCSWSignature = dCSWSignature;
+    }
+
+    public int getdCSWTag()
+    {
+        return dCSWTag;
+    }
+
+    public void setdCSWTag(int dCSWTag)
+    {
+        this.dCSWTag = dCSWTag;
+    }
+
+    public int getdCSWDataResidue()
+    {
+        return dCSWDataResidue;
+    }
+
+    public void setdCSWDataResidue(int dCSWDataResidue)
+    {
+        this.dCSWDataResidue = dCSWDataResidue;
+    }
+
+    public byte getbCSWStatus()
+    {
+        return bCSWStatus;
+    }
+
+    public void setbCSWStatus(byte bCSWStatus)
+    {
+        this.bCSWStatus = bCSWStatus;
+    }
 }
