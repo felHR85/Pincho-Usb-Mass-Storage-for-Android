@@ -1,5 +1,7 @@
 package com.felhr.usbmassstorageforandroid.scsi;
 
+import android.os.Bundle;
+
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 22/12/14.
  */
@@ -25,6 +27,14 @@ public class SCSIModeSense10Response extends SCSIResponse
         response.longLba = (data[4] & 1) == 1;
         response.blockDescriptorLength = (data[6] << 8) + (data[7]);
         return response;
+    }
+
+    @Override
+    public Bundle getReadableResponse()
+    {
+        Bundle bundle = new Bundle();
+        // TODO
+        return bundle;
     }
 
     public int getModeDataLength()

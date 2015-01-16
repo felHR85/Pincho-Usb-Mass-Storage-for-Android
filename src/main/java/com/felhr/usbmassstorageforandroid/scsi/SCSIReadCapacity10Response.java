@@ -1,5 +1,7 @@
 package com.felhr.usbmassstorageforandroid.scsi;
 
+import android.os.Bundle;
+
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 16/12/14.
  */
@@ -13,11 +15,40 @@ public class SCSIReadCapacity10Response extends SCSIResponse
 
     }
 
+
     public static SCSIReadCapacity10Response getResponse(byte[] data)
     {
         SCSIReadCapacity10Response response = new SCSIReadCapacity10Response();
         response.returnedLogicalBlockAddress = (data[0] << 24) + (data[1] << 16) + (data[2] << 8) + data[3];
         response.blockLength = (data[4] << 24) + (data[5] << 16) + (data[6] << 8) + data[7];
         return response;
+    }
+
+    @Override
+    public Bundle getReadableResponse()
+    {
+        Bundle bundle = new Bundle();
+        // TODO
+        return bundle;
+    }
+
+    public int getReturnedLogicalBlockAddress()
+    {
+        return returnedLogicalBlockAddress;
+    }
+
+    public void setReturnedLogicalBlockAddress(int returnedLogicalBlockAddress)
+    {
+        this.returnedLogicalBlockAddress = returnedLogicalBlockAddress;
+    }
+
+    public int getBlockLength()
+    {
+        return blockLength;
+    }
+
+    public void setBlockLength(int blockLength)
+    {
+        this.blockLength = blockLength;
     }
 }

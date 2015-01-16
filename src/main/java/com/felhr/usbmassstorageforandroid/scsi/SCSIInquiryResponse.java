@@ -1,5 +1,7 @@
 package com.felhr.usbmassstorageforandroid.scsi;
 
+import android.os.Bundle;
+
 import java.util.Arrays;
 
 /**
@@ -80,6 +82,37 @@ public class SCSIInquiryResponse extends SCSIResponse
         response.productIdentification = Arrays.copyOfRange(data, 16, 32);
         response.productRevisionLevel = Arrays.copyOfRange(data, 32, 35);
         return response;
+    }
+
+    @Override
+    public Bundle getReadableResponse()
+    {
+        Bundle bundle = new Bundle();
+        bundle.putString("peripheralQualifier", String.valueOf(peripheralQualifier));
+        bundle.putString("peripheralDeviceType", String.valueOf(peripheralDeviceType));
+        bundle.putString("removable", String.valueOf(removable));
+        bundle.putString("spcVersion", String.valueOf(spcVersion));
+        bundle.putString("normaca", String.valueOf(normaca));
+        bundle.putString("hisup", String.valueOf(hisup));
+        bundle.putString("dataFormatResponse", String.valueOf(dataFormatResponse));
+        bundle.putString("aditionalLength", String.valueOf(aditionalLength));
+        bundle.putString("sccs", String.valueOf(sccs));
+        bundle.putString("acc", String.valueOf(acc));
+        bundle.putString("tpgs", String.valueOf(tpgs));
+        bundle.putString("thirdPartyCommands", String.valueOf(thirdPartyCommands));
+        bundle.putString("protect", String.valueOf(protect));
+        bundle.putString("bque", String.valueOf(bque));
+        bundle.putString("encserv", String.valueOf(encserv));
+        bundle.putString("vs", String.valueOf(vs));
+        bundle.putString("multip", String.valueOf(multip));
+        bundle.putString("mchngr", String.valueOf(mchngr));
+        bundle.putString("addr16", String.valueOf(addr16));
+        bundle.putString("wbus16", String.valueOf(wbus16));
+        bundle.putString("sync", String.valueOf(sync));
+        bundle.putString("linked", String.valueOf(linked));
+        bundle.putString("cmdque", String.valueOf(cmdque));
+        bundle.putString("vendorSpecific", String.valueOf(vendorSpecific));
+        return bundle;
     }
 
     public int getPeripheralQualifier()

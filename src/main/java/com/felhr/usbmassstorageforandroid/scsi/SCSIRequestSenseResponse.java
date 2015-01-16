@@ -1,5 +1,7 @@
 package com.felhr.usbmassstorageforandroid.scsi;
 
+import android.os.Bundle;
+
 import java.util.Arrays;
 
 /**
@@ -77,6 +79,14 @@ public class SCSIRequestSenseResponse extends SCSIResponse
         }
 
         return response;
+    }
+
+    @Override
+    public Bundle getReadableResponse()
+    {
+        Bundle bundle = new Bundle();
+        // TODO
+        return bundle;
     }
 
     public boolean isValid()

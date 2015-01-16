@@ -1,5 +1,7 @@
 package com.felhr.usbmassstorageforandroid.scsi;
 
+import android.os.Bundle;
+
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 16/12/14.
  */
@@ -18,6 +20,16 @@ public class SCSIRead10Response extends SCSIResponse
         response.readBuffer = data;
         return response;
     }
+
+    @Override
+    public Bundle getReadableResponse()
+    {
+        Bundle bundle = new Bundle();
+        // TODO
+        return bundle;
+    }
+
+
 
     public byte[] getReadBuffer()
     {
