@@ -8,6 +8,7 @@ import android.hardware.usb.UsbInterface;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 
 import commandwrappers.CommandWrapper;
 
@@ -65,16 +66,16 @@ public class UsbFacade
                     int endpointCount = massStorageInterface.getEndpointCount();
                     for(int j=0;j<=endpointCount-1;j++)
                     {
-                       UsbEndpoint endpoint = massStorageInterface.getEndpoint(j);
-                       if(endpoint.getType() == UsbConstants.USB_ENDPOINT_XFER_BULK
-                               && endpoint.getDirection() == UsbConstants.USB_DIR_IN)
-                       {
+                        UsbEndpoint endpoint = massStorageInterface.getEndpoint(j);
+                        if(endpoint.getType() == UsbConstants.USB_ENDPOINT_XFER_BULK
+                                && endpoint.getDirection() == UsbConstants.USB_DIR_IN)
+                        {
                             inEndpoint = endpoint;
-                       }else if(endpoint.getType() == UsbConstants.USB_ENDPOINT_XFER_BULK
-                               && endpoint.getDirection() == UsbConstants.USB_DIR_OUT)
-                       {
-                           outEndpoint = endpoint;
-                       }
+                        }else if(endpoint.getType() == UsbConstants.USB_ENDPOINT_XFER_BULK
+                                && endpoint.getDirection() == UsbConstants.USB_DIR_OUT)
+                        {
+                            outEndpoint = endpoint;
+                        }
                     }
 
                     if(inEndpoint != null && outEndpoint != null)
@@ -200,15 +201,15 @@ public class UsbFacade
 
     private class DataInThread extends Thread
     {
-       @Override
+        @Override
         public  void run()
         {
-           Looper.prepare();
-           inHandler = new Handler()
-           {
-               @Override
-               public void handleMessage(Message msg)
-               {
+            Looper.prepare();
+            inHandler = new Handler()
+            {
+                @Override
+                public void handleMessage(Message msg)
+                {
                     switch(msg.what)
                     {
                         case CBS_TRANSPORT:
@@ -225,9 +226,9 @@ public class UsbFacade
                                 facadeInterface.dataToHost(dataBuffer);
                             break;
                     }
-               }
-           };
-           Looper.loop();
-       }
+                }
+            };
+            Looper.loop();
+        }
     }
 }

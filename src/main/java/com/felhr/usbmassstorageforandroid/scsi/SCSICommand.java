@@ -90,13 +90,14 @@ public abstract class SCSICommand
             byte[] dst = new byte[16];
             System.arraycopy(data, 0, dst, 0, data.length);
             return dst;
-        }else if (data.length == 16)
+        }else if(data.length == 16)
         {
             return data;
-        }else
+        }else if(data.length > 16)
         {
             return null;
         }
+        return null;
     }
 
 }

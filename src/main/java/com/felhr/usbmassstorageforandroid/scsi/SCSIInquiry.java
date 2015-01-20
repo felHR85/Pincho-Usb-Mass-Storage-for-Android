@@ -47,7 +47,7 @@ public class SCSIInquiry extends SCSICommand
     @Override
     public CommandBlockWrapper getCbw()
     {
-        byte[] rawCommand = getCbwcb(this.getSCSICommandBuffer());
+        byte[] rawCommand = getCbwcb(getSCSICommandBuffer());
 
         int dCBWDataTransferLength = allocationLength;
 
