@@ -13,7 +13,7 @@ public class CommandBlockWrapper extends CommandWrapper
     private byte bmCBWFlags;
     private byte bCBWLUN;
     private byte bCBWCBLength;
-    private CommandBlock commandBlock;
+    private byte[] commandBlock;
 
 
     public CommandBlockWrapper(int dCBWSignature, int dCBWTag, int dCBWDataLength,
@@ -38,9 +38,9 @@ public class CommandBlockWrapper extends CommandWrapper
         this.bCBWCBLength = bCBWCBLength;
     }
 
-    public void setCommandBlock(int data1, int data2, int data3, int data4)
+    public void setCommandBlock(byte[] commandBlock)
     {
-        this.commandBlock = new CommandBlock(data1, data2, data3, data4);
+        this.commandBlock = commandBlock;
     }
 
     public int getdCBWDataLength()
@@ -63,7 +63,7 @@ public class CommandBlockWrapper extends CommandWrapper
         buffer.put(bmCBWFlags);
         buffer.put(bCBWLUN);
         buffer.put(bCBWCBLength);
-        buffer.put(commandBlock.getBuffer());
+        buffer.put(commandBlock);
         return buffer.array();
     }
 }

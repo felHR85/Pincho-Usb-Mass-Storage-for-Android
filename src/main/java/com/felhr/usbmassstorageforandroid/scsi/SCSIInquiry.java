@@ -39,7 +39,6 @@ public class SCSIInquiry extends SCSICommand
         else
             buffer.put((byte) 0x01);
         buffer.put(convertToByte(pageCode, 1));
-        buffer.put((byte) 0x00); // RESERVED byte
         buffer.put(convertToByte(allocationLength, 2));
         buffer.put(control);
         return buffer.array();
@@ -59,6 +58,7 @@ public class SCSIInquiry extends SCSICommand
         byte bCBWCBLength = (byte) (rawCommand.length);
 
         CommandBlockWrapper cbw = new CommandBlockWrapper(dCBWDataTransferLength, bmCBWFlags, bCBWLUN, bCBWCBLength);
+        cbw.setCommandBlock(rawCommand);
         return cbw;
     }
 

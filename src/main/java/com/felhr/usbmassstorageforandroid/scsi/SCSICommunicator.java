@@ -2,6 +2,7 @@ package com.felhr.usbmassstorageforandroid.scsi;
 
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
+import android.util.Log;
 
 import com.felhr.usbmassstorageforandroid.bulkonly.BulkOnlyCommunicator;
 import com.felhr.usbmassstorageforandroid.bulkonly.BulkOnlyStatusInterface;
@@ -127,6 +128,7 @@ public class SCSICommunicator
             SCSIResponse response = null;
             if(lastCommand instanceof SCSIInquiry)
             {
+                Log.e("SCSICommunicator", "Data Length:" + String.valueOf(data.length));
                 response = SCSIInquiryResponse.getResponse(data);
             }else if(lastCommand instanceof SCSIModeSense10)
             {
