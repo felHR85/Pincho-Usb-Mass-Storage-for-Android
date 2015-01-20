@@ -85,12 +85,12 @@ public abstract class SCSICommand
 
     protected byte[] getCbwcb(byte[] data)
     {
-        if(data.length < CommandBlockWrapper.CBW_SIZE)
+        if(data.length < 16)
         {
-            byte[] dst = new byte[CommandBlockWrapper.CBW_SIZE];
+            byte[] dst = new byte[16];
             System.arraycopy(data, 0, dst, 0, data.length);
             return dst;
-        }else if (data.length == CommandBlockWrapper.CBW_SIZE)
+        }else if (data.length == 16)
         {
             return data;
         }else
