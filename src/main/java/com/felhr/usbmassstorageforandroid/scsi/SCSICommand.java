@@ -1,5 +1,7 @@
 package com.felhr.usbmassstorageforandroid.scsi;
 
+import java.util.Arrays;
+
 import commandwrappers.CommandBlockWrapper;
 
 /**
@@ -79,6 +81,22 @@ public abstract class SCSICommand
             buffer = null;
         }
         return buffer;
+    }
+
+    protected byte[] getCbwcb(byte[] data)
+    {
+        if(data.length < CommandBlockWrapper.CBW_SIZE)
+        {
+            byte[] dst = new byte[CommandBlockWrapper.CBW_SIZE];
+            System.arraycopy(data, 0, dst, 0, data.length);
+            return dst;
+        }else if (data.length == CommandBlockWrapper.CBW_SIZE)
+        {
+            return data;
+        }else
+        {
+            return null;
+        }
     }
 
 }
