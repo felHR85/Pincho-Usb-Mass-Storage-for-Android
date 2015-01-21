@@ -7,8 +7,8 @@ import java.nio.ByteBuffer;
  */
 public abstract class CommandWrapper
 {
-    protected static final int CBW_SIGNATURE = 0x43425355;
-    protected static final int CBS_SIGNATURE = 0x53425355;
+    public static final int CBW_SIGNATURE = 0x43425355;
+    public static final int CBS_SIGNATURE = 0x53425355;
     public static final int CBW_SIZE = 31;
     public static final int CBS_SIZE = 13;
 

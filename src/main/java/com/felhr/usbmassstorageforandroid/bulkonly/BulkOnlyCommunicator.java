@@ -99,11 +99,11 @@ public class BulkOnlyCommunicator
             }else if(response > 0 && flagDataIN.get()) // CBW correctly sent. Receive data.
             {
                 statusCallback.onOperationStarted(true);
-                usbFacade.requestData(bufferINSize);
+                usbFacade.requestData(bufferINSize); // Not needed
             }else if(response > 0) // CBW correctly sent. No data expected.
             {
                 statusCallback.onOperationStarted(true);
-                usbFacade.requestCsw();
+                usbFacade.requestCsw(); // Not needed
             }else if(response <= 0) // CBW not correctly sent.
             {
                 statusCallback.onOperationStarted(false);

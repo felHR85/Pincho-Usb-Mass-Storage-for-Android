@@ -10,6 +10,11 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import commandwrappers.CommandBlockWrapper;
 import commandwrappers.CommandWrapper;
 
 /**
@@ -17,6 +22,8 @@ import commandwrappers.CommandWrapper;
  */
 public class UsbFacade
 {
+    private final int USB_ENDPOINT_LENGTH = 512;
+
     private static final int USB_TIMEOUT = 500;
     private static final int USB_TIMEOUT_2 = 5000;
 
@@ -35,7 +42,6 @@ public class UsbFacade
     private DataOutThread dataOutThread;
     private DataInThread dataInThread;
     private Handler outHandler;
-    private Handler inHandler;
 
     private UsbFacadeInterface facadeInterface;
 
@@ -139,17 +145,16 @@ public class UsbFacade
 
     public void requestCsw()
     {
-        inHandler.obtainMessage(CBS_TRANSPORT).sendToTarget();;
+        //inHandler.obtainMessage(CBS_TRANSPORT).sendToTarget();
     }
 
     public void requestData(int dataSize)
     {
-        inHandler.obtainMessage(DATA_TO_HOST, dataSize).sendToTarget();
+        //inHandler.obtainMessage(DATA_TO_HOST, dataSize).sendToTarget();
     }
 
     public void close()
     {
-        inHandler.getLooper().quit();
         outHandler.getLooper().quit();
     }
 
@@ -201,6 +206,53 @@ public class UsbFacade
 
     private class DataInThread extends Thread
     {
+        private byte[] buffer;
+        private AtomicBoolean keep;
+
+        public DataInThread()
+        {
+            this.buffer = new byte[USB_ENDPOINT_LENGTH];
+            this.keep = new AtomicBoolean(true);
+        }
+
+        @Override
+        public void run()
+        {
+            while(keep.get())
+            {
+                int response = mConnection.bulkTransfer(inEndpoint, buffer, USB_ENDPOINT_LENGTH, 0);
+                if(response > 0)
+                {
+                    Log.i("UsbFacade", "Data Received!!!");
+                    byte[] receivedData = new byte[response];
+                    System.arraycopy(buffer, 0, receivedData, 0, response);
+                    int cswSignature = 0;
+                    if(response == CommandWrapper.CBS_SIZE)
+                        cswSignature = ByteBuffer.wrap(Arrays.copyOfRange(receivedData, 0, 3)).getInt();
+
+                    if(receivedData.length == CommandWrapper.CBS_SIZE && cswSignature == CommandBlockWrapper.CBS_SIGNATURE) // It is a CSW
+                    {
+                        if(facadeInterface != null)
+                            facadeInterface.cswData(receivedData);
+                    }else // It is data to host
+                    {
+                        if(facadeInterface != null)
+                            facadeInterface.dataToHost(receivedData);
+                    }
+                }
+            }
+        }
+
+        public void stopThread()
+        {
+            keep.set(false);
+        }
+    }
+
+    /*
+
+    private class DataInThread extends Thread
+    {
         @Override
         public  void run()
         {
@@ -231,4 +283,5 @@ public class UsbFacade
             Looper.loop();
         }
     }
+    */
 }
