@@ -1,6 +1,7 @@
 package commandwrappers;
 
 import java.nio.ByteBuffer;
+import java.util.Random;
 
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 4/12/14.
@@ -50,7 +51,8 @@ public class CommandBlockWrapper extends CommandWrapper
 
     public int generateTag()
     {
-      return (int) (Math.random() * 0xffffffff);
+        Random random = new Random();
+        return random.nextInt();
     }
 
     @Override

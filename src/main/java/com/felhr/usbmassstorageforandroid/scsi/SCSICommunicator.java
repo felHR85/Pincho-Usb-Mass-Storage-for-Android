@@ -41,6 +41,16 @@ public class SCSICommunicator
         commandHandler.stopHandler();
     }
 
+    public void reset()
+    {
+        communicator.reset();
+    }
+
+    public void resetRecovery()
+    {
+        communicator.resetRecovery();
+    }
+
     public void inquiry(boolean evpd, int pageCode, int allocationLength)
     {
         SCSIInquiry inquiry = new SCSIInquiry(evpd, pageCode, allocationLength);

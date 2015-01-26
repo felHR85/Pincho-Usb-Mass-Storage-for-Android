@@ -10,6 +10,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
+import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -135,6 +137,9 @@ public class UsbFacade
 
     public void sendCommand(byte[] cbwBuffer)
     {
+        String inquiryBuffer = HexUtil.hexToString(cbwBuffer);
+        Log.i("Buffer state", "CBW: " + inquiryBuffer);
+        Log.i("Buffer state", "CBW Length:" + String.valueOf(cbwBuffer.length));
         outHandler.obtainMessage(CBW_TRANSPORT, cbwBuffer).sendToTarget();
     }
 
@@ -223,7 +228,6 @@ public class UsbFacade
                 int response = mConnection.bulkTransfer(inEndpoint, buffer, USB_ENDPOINT_LENGTH, 0);
                 if(response > 0)
                 {
-                    Log.i("UsbFacade", "Data Received!!!");
                     byte[] receivedData = new byte[response];
                     System.arraycopy(buffer, 0, receivedData, 0, response);
                     int cswSignature = 0;
