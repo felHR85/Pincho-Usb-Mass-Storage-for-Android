@@ -2,6 +2,9 @@ package com.felhr.usbmassstorageforandroid.bulkonly;
 
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
+import android.util.Log;
+
+import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -113,6 +116,7 @@ public class BulkOnlyCommunicator
         @Override
         public void cswData(byte[] data)
         {
+            Log.i("Buffer state", "CSW data: " + HexUtil.hexToString(data));
             CommandStatusWrapper csw = CommandStatusWrapper.getCWStatus(data);
             statusCallback.onOperationCompleted(csw);
         }

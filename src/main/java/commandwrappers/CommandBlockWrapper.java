@@ -1,6 +1,9 @@
 package commandwrappers;
 
+import com.felhr.usbmassstorageforandroid.utilities.EndianessUtil;
+
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Random;
 
 /**
@@ -59,9 +62,9 @@ public class CommandBlockWrapper extends CommandWrapper
     public byte[] getCWBuffer()
     {
         ByteBuffer buffer = ByteBuffer.allocate(CBW_SIZE);
-        buffer.putInt(dCBWSignature);
+        buffer.putInt(EndianessUtil.swapEndianess(dCBWSignature));
         buffer.putInt(dCBWTag);
-        buffer.putInt(dCBWDataLength);
+        buffer.putInt(EndianessUtil.swapEndianess(dCBWDataLength));
         buffer.put(bmCBWFlags);
         buffer.put(bCBWLUN);
         buffer.put(bCBWCBLength);

@@ -11,12 +11,10 @@ import commandwrappers.CommandBlockWrapper;
 public class SCSICommandBuffer
 {
     private LinkedList<SCSICommand> commands;
-    private AtomicBoolean ready;
 
     public SCSICommandBuffer()
     {
         this.commands = new LinkedList<SCSICommand>();
-        this.ready = new AtomicBoolean(true);
     }
 
     public synchronized void putCommand(SCSICommand command)
@@ -27,17 +25,15 @@ public class SCSICommandBuffer
 
     public synchronized SCSICommand getCommand()
     {
-        if(commands.size() == 0 || !ready.get())
+        while(commands.size() == 0)
         {
             waitingForCommands();
         }
-        ready.set(false);
         return commands.pop();
     }
 
     public synchronized void goAhead()
     {
-        ready.set(true);
         notify();
     }
 

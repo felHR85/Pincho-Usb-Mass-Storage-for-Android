@@ -10,6 +10,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
+import com.felhr.usbmassstorageforandroid.utilities.EndianessUtil;
 import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
 
 import java.nio.ByteBuffer;
@@ -232,7 +233,8 @@ public class UsbFacade
                     System.arraycopy(buffer, 0, receivedData, 0, response);
                     int cswSignature = 0;
                     if(response == CommandWrapper.CBS_SIZE)
-                        cswSignature = ByteBuffer.wrap(Arrays.copyOfRange(receivedData, 0, 3)).getInt();
+                        cswSignature = EndianessUtil.swapEndianess(
+                                ByteBuffer.wrap(Arrays.copyOfRange(receivedData, 0, 4)).getInt());
 
                     if(receivedData.length == CommandWrapper.CBS_SIZE && cswSignature == CommandBlockWrapper.CBS_SIGNATURE) // It is a CSW
                     {

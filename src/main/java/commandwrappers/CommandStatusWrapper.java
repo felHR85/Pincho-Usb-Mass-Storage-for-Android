@@ -25,9 +25,9 @@ public class CommandStatusWrapper extends CommandWrapper
     public static CommandStatusWrapper getCWStatus(byte[] buffer)
     {
         int signature = convertToInt(Arrays.copyOfRange(buffer, 0, 4));
-        int tag = convertToInt(Arrays.copyOfRange(buffer, 4, 4));
-        int residue = convertToInt(Arrays.copyOfRange(buffer, 8, 4));
-        byte status = Arrays.copyOfRange(buffer, 12, 1)[0];
+        int tag = convertToInt(Arrays.copyOfRange(buffer, 4, 8));
+        int residue = convertToInt(Arrays.copyOfRange(buffer, 8, 12));
+        byte status = buffer[12];
         return new CommandStatusWrapper(signature, tag, residue, status);
     }
 
