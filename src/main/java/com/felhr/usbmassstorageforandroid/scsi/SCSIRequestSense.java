@@ -1,5 +1,9 @@
 package com.felhr.usbmassstorageforandroid.scsi;
 
+import android.util.Log;
+
+import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
+
 import java.nio.ByteBuffer;
 
 import commandwrappers.CommandBlockWrapper;
@@ -10,6 +14,7 @@ import commandwrappers.CommandBlockWrapper;
 public class SCSIRequestSense extends SCSICommand
 {
     public static final byte REQUESTSENSE_OPERATION_CODE = 0x03;
+    private static final int REQUESTSENSE_COMMAND_LENGTH = 6;
 
     private byte operationCode;
     private boolean desc;
@@ -29,12 +34,14 @@ public class SCSIRequestSense extends SCSICommand
     @Override
     public byte[] getSCSICommandBuffer()
     {
-        ByteBuffer buffer = ByteBuffer.allocate(5);
+        ByteBuffer buffer = ByteBuffer.allocate(6);
         buffer.put(operationCode);
         if(desc)
             buffer.put((byte) 0x01);
         else
             buffer.put((byte) 0x00);
+        buffer.put((byte) 0x00);
+        buffer.put((byte) 0x00);
         buffer.put(convertToByte(allocationLength, 1));
         buffer.put(control);
         return buffer.array();
@@ -43,7 +50,9 @@ public class SCSIRequestSense extends SCSICommand
     @Override
     public CommandBlockWrapper getCbw()
     {
-        byte[] rawInstruction = this.getSCSICommandBuffer();
+        byte[] rawCommand = getCbwcb(getSCSICommandBuffer());
+        Log.i("Buffer state", "SCSI: " + HexUtil.hexToString(rawCommand));
+
         int dCBWDataTransferLength = allocationLength;
 
         byte bmCBWFlags = 0x00;
@@ -51,9 +60,10 @@ public class SCSIRequestSense extends SCSICommand
         bmCBWFlags |= (1 << 7); // From device to host
 
         byte bCBWLUN = 0x00; // Check this!!!
-        byte bCBWCBLength = (byte) (rawInstruction.length);
+        byte bCBWCBLength = (byte) (REQUESTSENSE_COMMAND_LENGTH);
 
         CommandBlockWrapper cbw = new CommandBlockWrapper(dCBWDataTransferLength, bmCBWFlags, bCBWLUN, bCBWCBLength);
+        cbw.setCommandBlock(rawCommand);
         return cbw;
     }
 

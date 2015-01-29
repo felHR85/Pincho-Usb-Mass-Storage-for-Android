@@ -1,6 +1,9 @@
 package com.felhr.usbmassstorageforandroid.scsi;
 
 import android.os.Bundle;
+import android.util.Log;
+
+import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
 
 import java.util.Arrays;
 
@@ -32,6 +35,8 @@ public class SCSIRequestSenseResponse extends SCSIResponse
 
     public static SCSIRequestSenseResponse getResponse(byte[] data)
     {
+        Log.i("Buffer state", "Data to host: " + HexUtil.hexToString(data));
+
         SCSIRequestSenseResponse response = new SCSIRequestSenseResponse();
         response.valid = (data[0] & (1 << 7)) == (1 << 7);
 
@@ -85,7 +90,20 @@ public class SCSIRequestSenseResponse extends SCSIResponse
     public Bundle getReadableResponse()
     {
         Bundle bundle = new Bundle();
-        // TODO
+        bundle.putString("valid", String.valueOf(valid));
+        bundle.putString("responseCode", String.valueOf(responseCode));
+        bundle.putString("fileMark", String.valueOf(fileMark));
+        bundle.putString("eom", String.valueOf(eom));
+        bundle.putString("ili", String.valueOf(ili));
+        bundle.putString("senseKey", String.valueOf(senseKey));
+        bundle.putString("information", String.valueOf(information));
+        bundle.putString("additionalSenseLength", String.valueOf(additionalSenseLength));
+        bundle.putString("commandSpecificInformation", String.valueOf(commandSpecificInformation));
+        bundle.putString("additionalSenseCode", String.valueOf(additionalSenseCode));
+        bundle.putString("additionalSenseCodeCodeQualifier", String.valueOf(additionalSenseCodeCodeQualifier));
+        bundle.putString("fieldReplaceableUnitCode", String.valueOf(fieldReplaceableUnitCode));
+        bundle.putString("sksv", String.valueOf(sksv));
+        bundle.putString("senseKeySpecific", String.valueOf(senseKeySpecific));
         return bundle;
     }
 

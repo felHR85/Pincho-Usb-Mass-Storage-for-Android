@@ -10,6 +10,7 @@ import commandwrappers.CommandBlockWrapper;
 public class SCSITestUnitReady extends SCSICommand
 {
     public byte TESTUNIT_OPERATION_CODE = 0x00;
+    private static final int TESTUNIT_COMMAND_LENGTH = 6;
     public byte control;
 
     public SCSITestUnitReady()
@@ -22,7 +23,7 @@ public class SCSITestUnitReady extends SCSICommand
     @Override
     public byte[] getSCSICommandBuffer()
     {
-        ByteBuffer buffer = ByteBuffer.allocate(5);
+        ByteBuffer buffer = ByteBuffer.allocate(6);
         buffer.put(TESTUNIT_OPERATION_CODE);
         buffer.put((byte) 0x00);
         buffer.put((byte) 0x00);
@@ -35,15 +36,16 @@ public class SCSITestUnitReady extends SCSICommand
     @Override
     public CommandBlockWrapper getCbw()
     {
-        byte[] rawInstruction = this.getSCSICommandBuffer();
+        byte[] rawCommand = getCbwcb(getSCSICommandBuffer());
         int dCBWDataTransferLength = 0;
 
         byte bmCBWFlags = 0x00;
 
         byte bCBWLUN = 0x00; // Check this!!!
-        byte bCBWCBLength = (byte) (rawInstruction.length);
+        byte bCBWCBLength = (byte) (TESTUNIT_COMMAND_LENGTH);
 
         CommandBlockWrapper cbw = new CommandBlockWrapper(dCBWDataTransferLength, bmCBWFlags, bCBWLUN, bCBWCBLength);
+        cbw.setCommandBlock(rawCommand);
         return cbw;
     }
 
