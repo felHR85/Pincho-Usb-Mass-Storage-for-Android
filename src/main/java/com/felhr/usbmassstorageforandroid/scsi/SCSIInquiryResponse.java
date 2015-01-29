@@ -1,6 +1,9 @@
 package com.felhr.usbmassstorageforandroid.scsi;
 
 import android.os.Bundle;
+import android.util.Log;
+
+import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
 
 import java.util.Arrays;
 
@@ -48,17 +51,19 @@ public class SCSIInquiryResponse extends SCSIResponse
 
     public static SCSIInquiryResponse getResponse(byte[] data)
     {
+        Log.i("Buffer state", "Data to host: " + HexUtil.hexToString(data));
+
         SCSIInquiryResponse response = new SCSIInquiryResponse();
         response.peripheralQualifier = data[0] >> 5;
         data[0] &= ~(1 << 7);
         data[0] &= ~(1 << 6);
         data[0] &= ~(1 << 5);
         response.peripheralDeviceType = data[0];
-        response.removable = data[1] == 0x80;
+        response.removable = data[1] == (byte) 0x80;
         response.spcVersion = data[2];
         response.normaca = (data[3] & (1 << 5)) == (1 << 5);
         response.hisup = (data[3] & (1 << 4)) == (1 << 4);
-        data[3] &= (1 << 5);
+        data[3] &= ~(1 << 5);
         data[3] &= ~(1 << 4);
         response.dataFormatResponse = data[3];
         response.aditionalLength = data[4];

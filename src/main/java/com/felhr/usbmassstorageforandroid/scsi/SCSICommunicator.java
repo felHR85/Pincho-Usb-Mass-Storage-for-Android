@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.felhr.usbmassstorageforandroid.bulkonly.BulkOnlyCommunicator;
 import com.felhr.usbmassstorageforandroid.bulkonly.BulkOnlyStatusInterface;
+import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -138,7 +139,6 @@ public class SCSICommunicator
             SCSIResponse response = null;
             if(lastCommand instanceof SCSIInquiry)
             {
-                Log.e("SCSICommunicator", "Data Length:" + String.valueOf(data.length));
                 response = SCSIInquiryResponse.getResponse(data);
             }else if(lastCommand instanceof SCSIModeSense10)
             {

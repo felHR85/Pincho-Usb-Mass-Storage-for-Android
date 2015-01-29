@@ -28,7 +28,8 @@ public class SCSIReadCapacity10Response extends SCSIResponse
     public Bundle getReadableResponse()
     {
         Bundle bundle = new Bundle();
-        // TODO
+        bundle.putString("returnedLogicalBlockAddress", String.valueOf(returnedLogicalBlockAddress));
+        bundle.putString("blockLength", String.valueOf(blockLength));
         return bundle;
     }
 
