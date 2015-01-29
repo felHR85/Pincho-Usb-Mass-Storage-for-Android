@@ -25,7 +25,7 @@ public class SCSIRead10Response extends SCSIResponse
     public Bundle getReadableResponse()
     {
         Bundle bundle = new Bundle();
-        // TODO
+        bundle.putString("readBuffer", new String(readBuffer));
         return bundle;
     }
 

@@ -1,6 +1,9 @@
 package com.felhr.usbmassstorageforandroid.scsi;
 
 import android.os.Bundle;
+import android.util.Log;
+
+import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
 
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 16/12/14.
@@ -18,6 +21,8 @@ public class SCSIReadCapacity10Response extends SCSIResponse
 
     public static SCSIReadCapacity10Response getResponse(byte[] data)
     {
+        Log.i("Buffer state", "Data to host: " + HexUtil.hexToString(data));
+
         SCSIReadCapacity10Response response = new SCSIReadCapacity10Response();
         response.returnedLogicalBlockAddress = (data[0] << 24) + (data[1] << 16) + (data[2] << 8) + data[3];
         response.blockLength = (data[4] << 24) + (data[5] << 16) + (data[6] << 8) + data[7];
