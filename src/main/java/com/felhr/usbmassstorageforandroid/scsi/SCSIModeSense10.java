@@ -1,5 +1,9 @@
 package com.felhr.usbmassstorageforandroid.scsi;
 
+import android.util.Log;
+
+import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
+
 import java.nio.ByteBuffer;
 
 import commandwrappers.CommandBlockWrapper;
@@ -10,6 +14,7 @@ import commandwrappers.CommandBlockWrapper;
 public class SCSIModeSense10 extends SCSICommand
 {
     public static final byte MODESENSE10_OPERATION_CODE = 0x5a;
+    private static final int MODESENSE10_COMMAND_LENGTH = 10;
 
     private boolean llbaa;
     private boolean dbd;
@@ -80,8 +85,21 @@ public class SCSIModeSense10 extends SCSICommand
     @Override
     public CommandBlockWrapper getCbw()
     {
-        //TODO
-        return null;
+        byte[] rawCommand = getCbwcb(getSCSICommandBuffer());
+        Log.i("Buffer state", "SCSI: " + HexUtil.hexToString(rawCommand));
+
+        int dCBWDataTransferLength = 4;
+
+        byte bmCBWFlags = 0x00;
+
+        bmCBWFlags |= (1 << 7); // From device to host
+
+        byte bCBWLUN = 0x00; // Check this!!!
+        byte bCBWCBLength = (byte) MODESENSE10_COMMAND_LENGTH;
+
+        CommandBlockWrapper cbw = new CommandBlockWrapper(dCBWDataTransferLength, bmCBWFlags, bCBWLUN, bCBWCBLength);
+        cbw.setCommandBlock(rawCommand);
+        return cbw;
     }
 
 
