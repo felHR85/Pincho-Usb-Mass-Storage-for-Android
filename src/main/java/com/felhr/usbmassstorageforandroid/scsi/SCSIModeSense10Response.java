@@ -1,6 +1,9 @@
 package com.felhr.usbmassstorageforandroid.scsi;
 
 import android.os.Bundle;
+import android.util.Log;
+
+import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
 
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 22/12/14.
@@ -20,6 +23,8 @@ public class SCSIModeSense10Response extends SCSIResponse
 
     public static SCSIModeSense10Response getResponse(byte[] data)
     {
+        Log.i("Buffer state", "Data to host: " + HexUtil.hexToString(data));
+
         SCSIModeSense10Response response = new SCSIModeSense10Response();
         response.modeDataLength = (data[0] << 8) + (data[1]);
         response.mediumType = data[2];
@@ -33,7 +38,11 @@ public class SCSIModeSense10Response extends SCSIResponse
     public Bundle getReadableResponse()
     {
         Bundle bundle = new Bundle();
-        // TODO
+        bundle.putString("modeDataLength", String.valueOf(modeDataLength));
+        bundle.putString("mediumType", String.valueOf(mediumType));
+        bundle.putString("deviceSpecificParameter", String.valueOf(deviceSpecificParameter));
+        bundle.putString("longLba", String.valueOf(longLba));
+        bundle.putString("blockDescriptorLength", String.valueOf(blockDescriptorLength));
         return bundle;
     }
 

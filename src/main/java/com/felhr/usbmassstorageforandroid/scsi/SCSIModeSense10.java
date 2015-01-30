@@ -88,7 +88,7 @@ public class SCSIModeSense10 extends SCSICommand
         byte[] rawCommand = getCbwcb(getSCSICommandBuffer());
         Log.i("Buffer state", "SCSI: " + HexUtil.hexToString(rawCommand));
 
-        int dCBWDataTransferLength = 4;
+        int dCBWDataTransferLength = allocationLength;
 
         byte bmCBWFlags = 0x00;
 

@@ -99,6 +99,13 @@ public class SCSICommunicator
         buffer.putCommand(write10);
     }
 
+    public void modeSense10(boolean llbaa, boolean dbd, int pc,
+                            int pageCode, int subPageCode, int allocationLength)
+    {
+        SCSIModeSense10 modeSense10 = new SCSIModeSense10(llbaa, dbd, pc, pageCode, subPageCode, allocationLength);
+        buffer.putCommand(modeSense10);
+    }
+
     public void modeSelect10(boolean pageFormat, boolean savePages, int parameterListLength)
     {
         SCSIModeSelect10 modeSelect10 = new SCSIModeSelect10(pageFormat, savePages, parameterListLength);
