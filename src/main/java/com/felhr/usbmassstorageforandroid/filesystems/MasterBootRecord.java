@@ -1,4 +1,4 @@
-package com.felhr.usbmassstorageforandroid.com.felhr.usbmassstorageforandroid.filesystems;
+package com.felhr.usbmassstorageforandroid.filesystems;
 
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 4/2/15.
