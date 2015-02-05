@@ -2,6 +2,8 @@ package com.felhr.usbmassstorageforandroid.scsi;
 
 import android.os.Bundle;
 
+import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
+
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 16/12/14.
  */
@@ -25,7 +27,7 @@ public class SCSIRead10Response extends SCSIResponse
     public Bundle getReadableResponse()
     {
         Bundle bundle = new Bundle();
-        bundle.putString("readBuffer", new String(readBuffer));
+        bundle.putString("readBuffer", HexUtil.hexToString(readBuffer));
         return bundle;
     }
 

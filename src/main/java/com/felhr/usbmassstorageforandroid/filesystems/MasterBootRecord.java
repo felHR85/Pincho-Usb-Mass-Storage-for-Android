@@ -1,5 +1,9 @@
 package com.felhr.usbmassstorageforandroid.filesystems;
 
+import android.os.Bundle;
+
+import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
+
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 4/2/15.
  */
@@ -11,7 +15,7 @@ public class MasterBootRecord
 
     private MasterBootRecord()
     {
-
+        this.codeArea = new byte[440];
     }
 
     public static MasterBootRecord parseMbr(byte[] data)
@@ -31,6 +35,27 @@ public class MasterBootRecord
         {
             return null; // MBR must be 512 length
         }
+    }
+
+    public Bundle getReadableMbr()
+    {
+        Bundle bundle = new Bundle();
+        bundle.putString("codeArea", HexUtil.hexToString(codeArea));
+        bundle.putString("diskSignature", String.valueOf(diskSignature));
+
+        int i = 1;
+        for(Partition partitionElement : partitions)
+        {
+            Bundle partitionBundle = partitionElement.getReadableResponse();
+            bundle.putString("bootable" + String.valueOf(i), partitionBundle.getString("bootable"));
+            bundle.putString("chsStart" + String.valueOf(i), partitionBundle.getString("chsStart"));
+            bundle.putString("partitionType" + String.valueOf(i), partitionBundle.getString("partitionType"));
+            bundle.putString("chsEnd" + String.valueOf(i), partitionBundle.getString("chsEnd"));
+            bundle.putString("lbaStart" + String.valueOf(i), partitionBundle.getString("lbaStart"));
+            bundle.putString("sectorsNumber" + String.valueOf(i), partitionBundle.getString("sectorsNumber"));
+            i++;
+        }
+        return bundle;
     }
 
     private static Partition[] parsePartitionTable(byte[] partitionTable)
@@ -67,4 +92,18 @@ public class MasterBootRecord
         return counter;
     }
 
+    public byte[] getCodeArea()
+    {
+        return codeArea;
+    }
+
+    public int getDiskSignature()
+    {
+        return diskSignature;
+    }
+
+    public Partition[] getPartitions()
+    {
+        return partitions;
+    }
 }
