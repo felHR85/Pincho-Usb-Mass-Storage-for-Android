@@ -9,7 +9,7 @@ public class MasterBootRecord
     private int diskSignature;
     private Partition[] partitions;
 
-    public MasterBootRecord()
+    private MasterBootRecord()
     {
 
     }
@@ -18,12 +18,19 @@ public class MasterBootRecord
     {
         if(data.length == 512)
         {
-            // TODO
+            MasterBootRecord mbr = new MasterBootRecord();
+            System.arraycopy(data, 0, mbr.codeArea, 0, 440);
+            byte[] signatureArea = new byte[4];
+            System.arraycopy(data, 440, signatureArea, 0 ,4);
+            mbr.diskSignature = signatureArea[3] << 24 + signatureArea[2] << 16 + signatureArea[1] << 8 + signatureArea[0];
+            byte[] partitionsTable = new byte[64];
+            System.arraycopy(data, 446, partitionsTable, 0, 64);
+            mbr.partitions = parsePartitionTable(partitionsTable);
+            return mbr;
         }else
         {
             return null; // MBR must be 512 length
         }
-       return null;
     }
 
     private static Partition[] parsePartitionTable(byte[] partitionTable)
@@ -41,7 +48,6 @@ public class MasterBootRecord
                     partitions[partitionIndex] = partition;
             }
             return partitions;
-
         }else
         {
             return null; // Partition table must be 64 byte length
