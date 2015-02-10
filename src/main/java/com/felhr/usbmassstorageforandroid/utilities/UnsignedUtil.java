@@ -132,4 +132,18 @@ public class UnsignedUtil
         }
     }
 
+    public static long convertBytes2Long(byte...bytes)
+    {
+        long value = 0;
+        int length = bytes.length;
+        int firstIndex = 8 * (length - 1);
+        int n = 0;
+        for(byte b : bytes)
+        {
+            value += (byteToUlong(b) << (firstIndex - n));
+            n += 8;
+        }
+        return value;
+    }
+
 }

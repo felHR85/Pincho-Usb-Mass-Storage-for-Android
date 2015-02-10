@@ -3,6 +3,7 @@ package com.felhr.usbmassstorageforandroid.filesystems;
 import android.os.Bundle;
 
 import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
+import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 4/2/15.
@@ -10,7 +11,7 @@ import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
 public class MasterBootRecord
 {
     private byte[] codeArea;
-    private int diskSignature;
+    private long diskSignature;
     private Partition[] partitions;
 
     private MasterBootRecord()
@@ -26,7 +27,7 @@ public class MasterBootRecord
             System.arraycopy(data, 0, mbr.codeArea, 0, 440);
             byte[] signatureArea = new byte[4];
             System.arraycopy(data, 440, signatureArea, 0 ,4);
-            mbr.diskSignature = signatureArea[3] << 24 + signatureArea[2] << 16 + signatureArea[1] << 8 + signatureArea[0];
+            mbr.diskSignature = UnsignedUtil.convertBytes2Long(signatureArea[3], signatureArea[2],  signatureArea[1],  signatureArea[0]);
             byte[] partitionsTable = new byte[64];
             System.arraycopy(data, 446, partitionsTable, 0, 64);
             mbr.partitions = parsePartitionTable(partitionsTable);
@@ -97,7 +98,7 @@ public class MasterBootRecord
         return codeArea;
     }
 
-    public int getDiskSignature()
+    public long getDiskSignature()
     {
         return diskSignature;
     }

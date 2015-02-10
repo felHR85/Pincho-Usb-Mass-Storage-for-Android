@@ -13,11 +13,11 @@ import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 public class Partition
 {
     private boolean bootable;
-    private int chsStart; // 3-bytes
+    private long chsStart; // 3-bytes
     private int partitionType; // 1-byte
-    private int chsEnd; // 3-bytes
+    private long chsEnd; // 3-bytes
     private long lbaStart; // 4-bytes
-    private int sectorsNumber; // 4-bytes
+    private long sectorsNumber; // 4-bytes
 
     private Partition()
     {
@@ -31,11 +31,11 @@ public class Partition
             Log.i("Buffer state", HexUtil.hexToString(partitionData));
             Partition partition = new Partition();
             partition.bootable = partitionData[0] == 0x80;
-            partition.chsStart = (partitionData[3] << 16) + (partitionData[2] << 8) + partitionData[1];
+            partition.chsStart = UnsignedUtil.convertBytes2Long(partitionData[3] ,partitionData[2], partitionData[1]);
             partition.partitionType = partitionData[4];
-            partition.chsEnd = (partitionData[7] << 16) + (partitionData[6] << 8) + partitionData[5];
-            partition.lbaStart = (partitionData[11] << 24) + (partitionData[10] << 16) + (partitionData[9] << 8) + partitionData[8];
-            partition.sectorsNumber = (partitionData[15] << 24) + (partitionData[14] << 16) + (partitionData[13] << 8) + partitionData[12];
+            partition.chsEnd = UnsignedUtil.convertBytes2Long(partitionData[7], partitionData[6], partitionData[5]);
+            partition.lbaStart = UnsignedUtil.convertBytes2Long(partitionData[11], partitionData[10], partitionData[9], partitionData[8]);
+            partition.sectorsNumber = UnsignedUtil.convertBytes2Long(partitionData[15], partitionData[14], partitionData[13], partitionData[12]);
             return partition;
         }else
         {
@@ -66,7 +66,7 @@ public class Partition
     }
 
 
-    public int getChsStart()
+    public long getChsStart()
     {
         return chsStart;
     }
@@ -78,7 +78,7 @@ public class Partition
     }
 
 
-    public int getChsEnd()
+    public long getChsEnd()
     {
         return chsEnd;
     }
@@ -90,7 +90,7 @@ public class Partition
     }
 
 
-    public int getSectorsNumber()
+    public long getSectorsNumber()
     {
         return sectorsNumber;
     }
