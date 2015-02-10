@@ -1,0 +1,135 @@
+package com.felhr.usbmassstorageforandroid.utilities;
+
+/**
+ * Created by Felipe Herranz(felhr85@gmail.com) on 8/2/15.
+ */
+public class UnsignedUtil
+{
+    private final static short MAX_UNSIGNED_BYTE_VALUE = 256;
+    private final static int MAX_UNSIGNED_SHORT_VALUE = 65536;
+    private final static long MAX_UNSIGNED_INT_VALUE = 4294967296L;
+
+    private UnsignedUtil()
+    {
+
+    }
+
+    public static short byteToUshort(byte value)
+    {
+        if(value < 0)
+        {
+            short complement2Value = (short) (~value + 1);
+            return (short) (MAX_UNSIGNED_BYTE_VALUE  - complement2Value);
+        }else
+        {
+            return (short) value;
+        }
+    }
+
+    public static byte UshortToByte(short value)
+    {
+        if(value <= MAX_UNSIGNED_SHORT_VALUE)
+        {
+            if(value >= MAX_UNSIGNED_BYTE_VALUE / 2)
+            {
+                return (byte) ((~(MAX_UNSIGNED_BYTE_VALUE - value)) + 1);
+            }else
+            {
+                return (byte) value;
+            }
+        }else
+        {
+            throw new IllegalArgumentException("Value out of range for a byte");
+        }
+    }
+
+
+    public static int shortToUint(short value)
+    {
+        if(value < 0)
+        {
+            return MAX_UNSIGNED_SHORT_VALUE - (~value + 1);
+        }else
+        {
+            return value;
+        }
+    }
+
+
+    public static short UintToShort(int value)
+    {
+        if(value <= MAX_UNSIGNED_SHORT_VALUE)
+        {
+            if(value >= MAX_UNSIGNED_SHORT_VALUE / 2)
+            {
+                return (short) (~(MAX_UNSIGNED_SHORT_VALUE - value) + 1);
+            }else
+            {
+                return (short) value;
+            }
+        }else
+        {
+            throw new IllegalArgumentException("Value out of range for a short");
+        }
+    }
+
+    public static long intToUlong(int value)
+    {
+        if(value < 0)
+        {
+            long complement2Value = (~((long) value) + 1);
+            return MAX_UNSIGNED_INT_VALUE - complement2Value;
+        }else
+        {
+            return value;
+        }
+    }
+
+    public static int UlongToInt(long value)
+    {
+        if(value <= MAX_UNSIGNED_INT_VALUE)
+        {
+            if(value >= MAX_UNSIGNED_INT_VALUE / 2)
+            {
+                return (int) (~(MAX_UNSIGNED_INT_VALUE - value) + 1);
+            }else
+            {
+                return (int) value;
+            }
+        }else
+        {
+            throw new IllegalArgumentException("Value out of range for a int");
+        }
+    }
+
+    public static byte UlongToByte(long value) throws IllegalArgumentException
+    {
+        if(value <= MAX_UNSIGNED_BYTE_VALUE)
+        {
+            if(value >= MAX_UNSIGNED_BYTE_VALUE / 2)
+            {
+                long originalComplementValue = (~(MAX_UNSIGNED_BYTE_VALUE - value)) + 1;
+                return (byte) originalComplementValue;
+            }else
+            {
+                return (byte) value;
+            }
+        }else
+        {
+            throw new IllegalArgumentException("Value out of range for a byte");
+        }
+    }
+
+    public static long byteToUlong(byte value)
+    {
+        if(value < 0)
+        {
+            long complement2Value = ~value + 1;
+            return MAX_UNSIGNED_BYTE_VALUE  - complement2Value;
+        }else
+        {
+            return (long) value;
+        }
+    }
+
+}

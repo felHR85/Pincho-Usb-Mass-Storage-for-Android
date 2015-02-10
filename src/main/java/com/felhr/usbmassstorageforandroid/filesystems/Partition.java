@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.felhr.usbmassstorageforandroid.utilities.EndianessUtil;
 import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
+import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 4/2/15.
@@ -15,7 +16,7 @@ public class Partition
     private int chsStart; // 3-bytes
     private int partitionType; // 1-byte
     private int chsEnd; // 3-bytes
-    private int lbaStart; // 4-bytes
+    private long lbaStart; // 4-bytes
     private int sectorsNumber; // 4-bytes
 
     private Partition()
@@ -83,7 +84,7 @@ public class Partition
     }
 
 
-    public int getLbaStart()
+    public long getLbaStart()
     {
         return lbaStart;
     }
