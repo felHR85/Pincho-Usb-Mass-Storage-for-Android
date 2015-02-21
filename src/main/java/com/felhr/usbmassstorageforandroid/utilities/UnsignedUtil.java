@@ -26,7 +26,7 @@ public class UnsignedUtil
         }
     }
 
-    public static byte UshortToByte(short value)
+    public static byte ushortToByte(short value)
     {
         if(value <= MAX_UNSIGNED_SHORT_VALUE)
         {
@@ -56,7 +56,7 @@ public class UnsignedUtil
     }
 
 
-    public static short UintToShort(int value)
+    public static short uintToShort(int value)
     {
         if(value <= MAX_UNSIGNED_SHORT_VALUE)
         {
@@ -85,7 +85,7 @@ public class UnsignedUtil
         }
     }
 
-    public static int UlongToInt(long value)
+    public static int ulongToInt(long value)
     {
         if(value <= MAX_UNSIGNED_INT_VALUE)
         {
@@ -102,7 +102,7 @@ public class UnsignedUtil
         }
     }
 
-    public static byte UlongToByte(long value) throws IllegalArgumentException
+    public static byte ulongToByte(long value) throws IllegalArgumentException
     {
         if(value <= MAX_UNSIGNED_BYTE_VALUE)
         {
