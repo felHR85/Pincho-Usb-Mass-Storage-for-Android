@@ -23,6 +23,13 @@ public class SCSICommunicator
     private SCSICommandBuffer buffer;
     private SCSICommandHandler commandHandler;
 
+    /*
+        Read10 response can be greater than a sector (512 bytes)
+        In order to do not send 512 bytes packets to the upper layers
+        currentRead10Response will append all packets.
+     */
+    private SCSIRead10Response currentRead10Response;
+
     public SCSICommunicator(UsbDevice mDevice, UsbDeviceConnection mConnection)
     {
         this.communicator = new BulkOnlyCommunicator(mDevice, mConnection);
@@ -132,9 +139,14 @@ public class SCSICommunicator
         @Override
         public void onOperationCompleted(CommandStatusWrapper csw)
         {
+            if(csw.getbCSWStatus() == 0x00 && currentRead10Response != null)
+            {
+                scsiInterfaceCallback.onSCSIDataReceived(currentRead10Response);
+                currentRead10Response = null;
+            }
+
             if(csw.getbCSWStatus() == 0x02)
               communicator.resetRecovery();
-
             scsiInterfaceCallback.onSCSIOperationCompleted((int) csw.getbCSWStatus(), csw.getdCSWDataResidue());
             buffer.goAhead();
         }
@@ -147,23 +159,31 @@ public class SCSICommunicator
             if(lastCommand instanceof SCSIInquiry)
             {
                 response = SCSIInquiryResponse.getResponse(data);
+                scsiInterfaceCallback.onSCSIDataReceived(response);
             }else if(lastCommand instanceof SCSIModeSense10)
             {
                 response = SCSIModeSense10Response.getResponse(data);
+                scsiInterfaceCallback.onSCSIDataReceived(response);
             }else if(lastCommand instanceof SCSIRead10)
             {
-                response = SCSIRead10Response.getResponse(data);
+                // This case is different because more than one sector are probably be read
+                if(currentRead10Response == null)
+                    currentRead10Response = SCSIRead10Response.getResponse(data);
+                else
+                    currentRead10Response.addToBuffer(data);
             }else if(lastCommand instanceof SCSIReadCapacity10)
             {
                 response = SCSIReadCapacity10Response.getResponse(data);
+                scsiInterfaceCallback.onSCSIDataReceived(response);
             }else if(lastCommand instanceof SCSIReportLuns)
             {
                 response = SCSIReportLunsResponse.getResponse(data);
+                scsiInterfaceCallback.onSCSIDataReceived(response);
             }else if(lastCommand instanceof SCSIRequestSense)
             {
                 response = SCSIRequestSenseResponse.getResponse(data);
+                scsiInterfaceCallback.onSCSIDataReceived(response);
             }
-            scsiInterfaceCallback.onSCSIDataReceived(response);
         }
     };
 

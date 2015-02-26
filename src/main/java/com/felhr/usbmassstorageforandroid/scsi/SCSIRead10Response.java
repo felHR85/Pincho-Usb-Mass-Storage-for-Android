@@ -34,12 +34,12 @@ public class SCSIRead10Response extends SCSIResponse
         return bundle;
     }
 
-    private void addToBuffer(byte[] data)
+    public void addToBuffer(byte[] data)
     {
         readBuffer.addElements(data);
     }
 
-    private byte[] getBuffer()
+    public byte[] getBuffer()
     {
         return readBuffer.getBuffer();
     }
@@ -75,11 +75,6 @@ public class SCSIRead10Response extends SCSIResponse
         public byte[] getBuffer()
         {
             return buffer;
-        }
-
-        private void resizeBuffer()
-        {
-
         }
     }
 }
