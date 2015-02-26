@@ -1,5 +1,8 @@
 package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 
+import android.os.Bundle;
+
+import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
 import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
 import java.util.Arrays;
@@ -115,6 +118,18 @@ public class ReservedRegion
         reservedRegion.fileSystemType = new String(Arrays.copyOf(buffer, 8));
 
         return reservedRegion;
+    }
+
+    public Bundle getReadableReservedRegion()
+    {
+        Bundle bundle = new Bundle();
+        bundle.putString("bytesPerSector", String.valueOf(bytesPerSector));
+        bundle.putString("sectorsPerCluster", String.valueOf(sectorsPerCluster));
+        bundle.putString("numberReservedSectors", String.valueOf(numberReservedSectors));
+        bundle.putString("fatCopies", String.valueOf(fatCopies));
+        bundle.putString("numberSectorsPerFat", String.valueOf(numberSectorsPerFat));
+        bundle.putString("rootFirstCluster", String.valueOf(rootFirstCluster));
+        return bundle;
     }
 
     public long getJumpInstruction()
