@@ -28,7 +28,6 @@ public class Partition
     {
         if(partitionData.length == 16 && !isEmptyPartition(partitionData))
         {
-            Log.i("Buffer state", HexUtil.hexToString(partitionData));
             Partition partition = new Partition();
             partition.bootable = partitionData[0] == 0x80;
             partition.chsStart = UnsignedUtil.convertBytes2Long(partitionData[3] ,partitionData[2], partitionData[1]);

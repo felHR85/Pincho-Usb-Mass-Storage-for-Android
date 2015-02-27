@@ -70,7 +70,7 @@ public class FATHandler
         waitTillNotification();
         if(currentStatus)
         {
-            byte[] data = ((SCSIRead10Response) currentResponse).getReadBuffer();
+            byte[] data = ((SCSIRead10Response) currentResponse).getBuffer();
             return MasterBootRecord.parseMbr(data);
         }else
         {
@@ -85,7 +85,7 @@ public class FATHandler
         waitTillNotification();
         if(currentStatus)
         {
-            byte[] data = ((SCSIRead10Response) currentResponse).getReadBuffer();
+            byte[] data = ((SCSIRead10Response) currentResponse).getBuffer();
             return ReservedRegion.getReservedRegion(data);
         }else
         {

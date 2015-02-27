@@ -64,7 +64,7 @@ public class ReservedRegion
         reservedRegion.sectorsPerCluster = UnsignedUtil.convertBytes2Long(buffer[0]);
 
         System.arraycopy(data, 14, buffer, 0, 2);
-        reservedRegion.numberReservedSectors = UnsignedUtil.convertBytes2Long(buffer[1], buffer[2]);
+        reservedRegion.numberReservedSectors = UnsignedUtil.convertBytes2Long(buffer[1], buffer[0]);
 
         System.arraycopy(data, 16, buffer, 0, 1);
         reservedRegion.fatCopies = UnsignedUtil.convertBytes2Long(buffer[0]);
