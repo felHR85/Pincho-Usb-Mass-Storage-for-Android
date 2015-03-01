@@ -37,6 +37,7 @@ public class FATHandler
 
     public boolean mount(int partitionIndex)
     {
+
         testUnitReady();
 
         if(currentStatus)
@@ -94,6 +95,28 @@ public class FATHandler
 
     }
 
+    private long getEntryLBA(long entry)
+    {
+        long fatLBA = partition.getLbaStart() + reservedRegion.getNumberReservedSectors();
+        return fatLBA + (entry / 128);
+    }
+
+    private int getEntryBlockIndex(long entry) // range [0-127]
+    {
+        return ((int) (entry - ((entry / 128) * 128)));
+    }
+
+    private int[] getRealIndexes(int entryBlock)
+    {
+        int[] indexes = new int[4];
+        int value = 4 * entryBlock;
+        indexes[0] = value;
+        indexes[1] = value + 1;
+        indexes[2] = value + 2;
+        indexes[3] = value + 3;
+        return indexes;
+    }
+
     private FAT getFat()
     {
         //TODO
@@ -122,7 +145,6 @@ public class FATHandler
             monitor.notify();
         }
     }
-
 
     private SCSIInterface scsiInterface = new SCSIInterface()
     {
