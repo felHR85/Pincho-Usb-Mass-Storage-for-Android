@@ -11,6 +11,10 @@ import com.felhr.usbmassstorageforandroid.scsi.SCSIRead10Response;
 import com.felhr.usbmassstorageforandroid.scsi.SCSIResponse;
 import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.UnsupportedCharsetException;
+
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 20/2/15.
  */
@@ -37,7 +41,6 @@ public class FATHandler
 
     public boolean mount(int partitionIndex)
     {
-
         testUnitReady();
 
         if(currentStatus)
@@ -94,8 +97,59 @@ public class FATHandler
 
     private FileEntry[] getFileEntries(byte[] data)
     {
-        // TODO: data will be the whole cluster of a root/subdirectory
+        int entrySize = 32;
+        byte[] bufferEntry = new byte[entrySize];
+        int i = 0;
+        int index1 = entrySize * i;
+        while(index1 < data.length)
+        {
+            System.arraycopy(data, index1, bufferEntry, 0, entrySize);
+            // TODO Check if an entry is a LFN or a file/directory
+            i++;
+            index1 = entrySize * i;
+
+        }
         return null;
+    }
+
+    private String parseLFN(byte[] lfnData)
+    {
+        byte[] unicodeBuffer = new byte[26];
+        unicodeBuffer[0] = lfnData[1];
+        unicodeBuffer[1] = lfnData[2];
+        unicodeBuffer[2] = lfnData[3];
+        unicodeBuffer[3] = lfnData[4];
+        unicodeBuffer[4] = lfnData[5];
+        unicodeBuffer[5] = lfnData[6];
+        unicodeBuffer[6] = lfnData[7];
+        unicodeBuffer[7] = lfnData[8];
+        unicodeBuffer[8] = lfnData[9];
+        unicodeBuffer[9] = lfnData[10];
+        unicodeBuffer[10] = lfnData[14];
+        unicodeBuffer[11] = lfnData[15];
+        unicodeBuffer[12] = lfnData[16];
+        unicodeBuffer[13] = lfnData[17];
+        unicodeBuffer[14] = lfnData[18];
+        unicodeBuffer[15] = lfnData[19];
+        unicodeBuffer[16] = lfnData[20];
+        unicodeBuffer[17] = lfnData[21];
+        unicodeBuffer[18] = lfnData[22];
+        unicodeBuffer[19] = lfnData[23];
+        unicodeBuffer[20] = lfnData[24];
+        unicodeBuffer[21] = lfnData[25];
+        unicodeBuffer[22] = lfnData[28];
+        unicodeBuffer[23] = lfnData[29];
+        unicodeBuffer[24] = lfnData[30];
+        unicodeBuffer[25] = lfnData[31];
+
+        try
+        {
+            return new String(unicodeBuffer, "UTF-8");
+        }catch (UnsupportedEncodingException e)
+        {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private long getEntryLBA(long entry)

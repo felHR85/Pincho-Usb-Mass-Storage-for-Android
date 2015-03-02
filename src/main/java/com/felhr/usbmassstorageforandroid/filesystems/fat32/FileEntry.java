@@ -66,7 +66,7 @@ public class FileEntry
         timeData = (buffer[0] << 8) + buffer[1];
         System.arraycopy(data, 24, buffer, 0, 2);
         dateData = (buffer[0] << 8) + buffer[1];
-        entry.lastAccessedDate = parseCreationDate(dateData, timeData);
+        entry.lastModifiedDate = parseCreationDate(dateData, timeData);
 
         System.arraycopy(data, 28, buffer, 0, 4);
         entry.size = UnsignedUtil.convertBytes2Long(buffer[0], buffer[1], buffer[2], buffer[3]);
@@ -144,5 +144,55 @@ public class FileEntry
         {
             return archive;
         }
+    }
+
+    public String getLongName()
+    {
+        return longName;
+    }
+
+    public String getShortName()
+    {
+        return shortName;
+    }
+
+    public String getFileExtension()
+    {
+        return fileExtension;
+    }
+
+    public Attributes getAttr()
+    {
+        return attr;
+    }
+
+    public int getFileCreationTime()
+    {
+        return fileCreationTime;
+    }
+
+    public Date getCreationDate()
+    {
+        return creationDate;
+    }
+
+    public Date getLastAccessedDate()
+    {
+        return lastAccessedDate;
+    }
+
+    public long getFirstCluster()
+    {
+        return firstCluster;
+    }
+
+    public Date getLastModifiedDate()
+    {
+        return lastModifiedDate;
+    }
+
+    public long getSize()
+    {
+        return size;
     }
 }
