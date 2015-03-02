@@ -54,8 +54,6 @@ public class FATHandler
         {
             return false;
         }
-
-
         return false;
     }
 
@@ -92,7 +90,12 @@ public class FATHandler
         {
             return null;
         }
+    }
 
+    private FileEntry[] getFileEntries(byte[] data)
+    {
+        // TODO: data will be the whole cluster of a root/subdirectory
+        return null;
     }
 
     private long getEntryLBA(long entry)
