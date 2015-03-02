@@ -101,7 +101,7 @@ public class FATHandler
         return fatLBA + (entry / 128);
     }
 
-    private int getEntryBlockIndex(long entry) // range [0-127]
+    private int getEntryBlockIndex(long entry) // range of returned value: [0-127]
     {
         return ((int) (entry - ((entry / 128) * 128)));
     }
