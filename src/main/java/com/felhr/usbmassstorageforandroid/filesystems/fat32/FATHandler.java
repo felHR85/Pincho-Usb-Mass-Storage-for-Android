@@ -32,16 +32,14 @@ public class FATHandler
     //Mounted Partition
     private Partition partition;
     private ReservedRegion reservedRegion;
-    private List<FileEntry> directoriesList;
-    private List<FileEntry> entries;
+    private Path path;
 
     public FATHandler(UsbDevice mDevice, UsbDeviceConnection mConnection)
     {
         this.comm = new SCSICommunicator(mDevice, mConnection);
         this.comm.openSCSICommunicator(scsiInterface);
         this.monitor = new Object();
-        this.entries = new ArrayList<FileEntry>();
-        this.directoriesList = new ArrayList<FileEntry>();
+        this.path = new Path();
     }
 
     public boolean mount(int partitionIndex)
@@ -57,7 +55,8 @@ public class FATHandler
         {
             partition = mbr.getPartitions()[partitionIndex];
             reservedRegion = getReservedRegion();
-            // Read root level
+            List<Long> clustersRoot = getClusterChain(2);
+
         }else
         {
             return false;
@@ -67,7 +66,7 @@ public class FATHandler
 
     public void changeDirectory(String directory)
     {
-
+        //TODO
     }
 
     public byte[] openFile(String fileName)
@@ -96,6 +95,35 @@ public class FATHandler
         }
     }
 
+    private List<Long> getClusterChain(long cluster)
+    {
+        boolean keepSearching = true;
+        List<Long> clusterChain = new ArrayList<Long>();
+        clusterChain.add(cluster);
+        while(keepSearching)
+        {
+            long lbaCluster = getEntryLBA(cluster);
+            byte[] sector = readBytes(lbaCluster, 1);
+            int entrySectorIndex = getEntrySectorIndex(cluster);
+            int[] indexes = getRealIndexes(entrySectorIndex);
+            cluster = UnsignedUtil.convertBytes2Long(sector[indexes[3]], sector[indexes[2]], sector[indexes[1]], sector[indexes[0]]);
+            if(cluster != 0xfffffff)
+            {
+                clusterChain.add(cluster);
+            }else
+            {
+                keepSearching = false;
+            }
+        }
+        return clusterChain;
+    }
+
+    private byte[] readClusters(long[] cluster)
+    {
+        //TODO
+        return null;
+    }
+
     private ReservedRegion getReservedRegion()
     {
         long lbaPartitionStart = partition.getLbaStart();
@@ -105,6 +133,19 @@ public class FATHandler
         {
             byte[] data = ((SCSIRead10Response) currentResponse).getBuffer();
             return ReservedRegion.getReservedRegion(data);
+        }else
+        {
+            return null;
+        }
+    }
+
+    private byte[] readBytes(long lba, int length)
+    {
+        comm.read10(0, false, false, false, UnsignedUtil.ulongToInt(lba), 0, length);
+        waitTillNotification();
+        if(currentStatus)
+        {
+            return ((SCSIRead10Response) currentResponse).getBuffer();
         }else
         {
             return null;
@@ -127,6 +168,7 @@ public class FATHandler
                 longFileEntryNames.add(parseLFN(bufferEntry));
             }else // Normal entry
             {
+                //TODO It could be a all 0x00 entry so it has not to be added (TODO)
                 if(longFileEntryNames != null) // LFN is present
                 {
                     String lfn = "";
@@ -195,7 +237,7 @@ public class FATHandler
         return fatLBA + (entry / 128);
     }
 
-    private int getEntryBlockIndex(long entry) // range of returned value: [0-127]
+    private int getEntrySectorIndex(long entry) // range of returned value: [0-127]
     {
         return ((int) (entry - ((entry / 128) * 128)));
     }
