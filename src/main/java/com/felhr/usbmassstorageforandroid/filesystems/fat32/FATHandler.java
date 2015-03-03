@@ -32,13 +32,16 @@ public class FATHandler
     //Mounted Partition
     private Partition partition;
     private ReservedRegion reservedRegion;
-    private FAT fat;
+    private List<FileEntry> directoriesList;
+    private List<FileEntry> entries;
 
     public FATHandler(UsbDevice mDevice, UsbDeviceConnection mConnection)
     {
         this.comm = new SCSICommunicator(mDevice, mConnection);
         this.comm.openSCSICommunicator(scsiInterface);
         this.monitor = new Object();
+        this.entries = new ArrayList<FileEntry>();
+        this.directoriesList = new ArrayList<FileEntry>();
     }
 
     public boolean mount(int partitionIndex)
@@ -60,6 +63,17 @@ public class FATHandler
             return false;
         }
         return false;
+    }
+
+    public void changeDirectory(String directory)
+    {
+
+    }
+
+    public byte[] openFile(String fileName)
+    {
+        //TODO
+        return null;
     }
 
     private void testUnitReady()
