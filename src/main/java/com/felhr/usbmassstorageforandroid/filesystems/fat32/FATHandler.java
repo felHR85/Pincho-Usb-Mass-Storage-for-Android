@@ -12,8 +12,6 @@ import com.felhr.usbmassstorageforandroid.scsi.SCSIResponse;
 import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -253,11 +251,6 @@ public class FATHandler
         return indexes;
     }
 
-    private FAT getFat()
-    {
-        //TODO
-        return null;
-    }
 
     private void waitTillNotification()
     {
