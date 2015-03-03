@@ -14,6 +14,8 @@ import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 20/2/15.
@@ -97,6 +99,8 @@ public class FATHandler
 
     private FileEntry[] getFileEntries(byte[] data)
     {
+        List<FileEntry> entries = new ArrayList<FileEntry>();
+        List<String> longFileEntryNames = new ArrayList<String>();
         int entrySize = 32;
         byte[] bufferEntry = new byte[entrySize];
         int i = 0;
@@ -104,12 +108,31 @@ public class FATHandler
         while(index1 < data.length)
         {
             System.arraycopy(data, index1, bufferEntry, 0, entrySize);
-            // TODO Check if an entry is a LFN or a file/directory
+            if((bufferEntry[11] & 1) == 1 && (bufferEntry[11] & 2) == 2 && (bufferEntry[11] & 4) == 4) // LFN Entry
+            {
+                longFileEntryNames.add(parseLFN(bufferEntry));
+            }else // Normal entry
+            {
+                if(longFileEntryNames != null) // LFN is present
+                {
+                    String lfn = "";
+                    int index2 = longFileEntryNames.size() - 1;
+                    while(index2 >= 0)
+                    {
+                        lfn += longFileEntryNames.get(index2);
+                        index2--;
+                    }
+                    entries.add(FileEntry.getEntry(lfn, bufferEntry));
+                    longFileEntryNames.clear();
+                }else // No LFN
+                {
+                    entries.add(FileEntry.getEntry(null, bufferEntry));
+                }
+            }
             i++;
             index1 = entrySize * i;
-
         }
-        return null;
+        return (FileEntry[]) entries.toArray();
     }
 
     private String parseLFN(byte[] lfnData)
