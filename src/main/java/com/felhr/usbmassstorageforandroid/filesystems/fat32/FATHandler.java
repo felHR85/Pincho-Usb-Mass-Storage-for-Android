@@ -13,6 +13,7 @@ import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -54,12 +55,13 @@ public class FATHandler
             partition = mbr.getPartitions()[partitionIndex];
             reservedRegion = getReservedRegion();
             List<Long> clustersRoot = getClusterChain(2);
-
+            byte[] data = readClusters(clustersRoot);
+            path.setDirectoryContent(getFileEntries(data));
+            return true;
         }else
         {
             return false;
         }
-        return false;
     }
 
     public void changeDirectory(String directory)
@@ -116,10 +118,23 @@ public class FATHandler
         return clusterChain;
     }
 
-    private byte[] readClusters(long[] cluster)
+    private byte[] readClusters(List<Long> clusters)
     {
-        //TODO
-        return null;
+        long firstClusterLba = partition.getLbaStart() + reservedRegion.getNumberReservedSectors()
+                + (reservedRegion.getFatCopies() * reservedRegion.getNumberSectorsPerFat());
+        int lengthData = clusters.size() * ((int) (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()));
+        byte[] data = new byte[lengthData];
+        int index = 0;
+        Iterator<Long> e = clusters.iterator();
+        while(e.hasNext())
+        {
+            long cluster = e.next();
+            long lbaCluster =  firstClusterLba + (cluster - 2) * reservedRegion.getSectorsPerCluster();
+            byte[] clusterData = readBytes(lbaCluster, (int) reservedRegion.getSectorsPerCluster());
+            System.arraycopy(clusterData, 0, data, index, clusterData.length);
+            index += reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector();
+        }
+        return data;
     }
 
     private ReservedRegion getReservedRegion()
@@ -150,7 +165,7 @@ public class FATHandler
         }
     }
 
-    private FileEntry[] getFileEntries(byte[] data)
+    private List<FileEntry> getFileEntries(byte[] data)
     {
         List<FileEntry> entries = new ArrayList<FileEntry>();
         List<String> longFileEntryNames = new ArrayList<String>();
@@ -186,7 +201,7 @@ public class FATHandler
             i++;
             index1 = entrySize * i;
         }
-        return (FileEntry[]) entries.toArray();
+        return entries;
     }
 
     private String parseLFN(byte[] lfnData)
