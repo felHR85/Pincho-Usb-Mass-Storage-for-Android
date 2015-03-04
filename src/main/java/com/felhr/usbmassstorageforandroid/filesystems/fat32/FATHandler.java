@@ -83,16 +83,11 @@ public class FATHandler
 
     private MasterBootRecord getMbr()
     {
-        comm.read10(0, false, false, false, UnsignedUtil.ulongToInt(0), 0, 1);
-        waitTillNotification();
-        if(currentStatus)
-        {
-            byte[] data = ((SCSIRead10Response) currentResponse).getBuffer();
+        byte[] data = readBytes(0, 1);
+        if(data != null)
             return MasterBootRecord.parseMbr(data);
-        }else
-        {
+        else
             return null;
-        }
     }
 
     private List<Long> getClusterChain(long cluster)
@@ -140,16 +135,11 @@ public class FATHandler
     private ReservedRegion getReservedRegion()
     {
         long lbaPartitionStart = partition.getLbaStart();
-        comm.read10(0, false, false, false, UnsignedUtil.ulongToInt(lbaPartitionStart), 0, 1);
-        waitTillNotification();
-        if(currentStatus)
-        {
-            byte[] data = ((SCSIRead10Response) currentResponse).getBuffer();
+        byte[] data = readBytes(lbaPartitionStart, 1);
+        if(data != null)
             return ReservedRegion.getReservedRegion(data);
-        }else
-        {
+        else
             return null;
-        }
     }
 
     private byte[] readBytes(long lba, int length)
