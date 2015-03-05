@@ -67,7 +67,7 @@ public class FATHandler
 
     public boolean unMount()
     {
-        return false;
+        return preventAllowRemoval(false);
     }
 
     public List<FileEntry> list()
@@ -80,7 +80,7 @@ public class FATHandler
         return path.getAbsolutePath();
     }
 
-    public boolean changeDirectory(String directoryName)
+    public boolean changeDir(String directoryName)
     {
         Iterator<FileEntry> e = path.getDirectoryContent().iterator();
         while(e.hasNext())
@@ -92,6 +92,7 @@ public class FATHandler
                 long firstCluster = entry.getFirstCluster();
                 List<Long> clusterChain = getClusterChain(firstCluster);
                 byte[] data = readClusters(clusterChain);
+                path.clearDirectoryContent();
                 path.setDirectoryContent(getFileEntries(data));
                 return true;
             }
@@ -99,9 +100,10 @@ public class FATHandler
         return false;
     }
 
-    public void changeBack()
+    public void changeDirBack()
     {
         //TODO
+
     }
 
     public byte[] openFile(String fileName)
@@ -188,6 +190,16 @@ public class FATHandler
         {
             return null;
         }
+    }
+
+    private boolean preventAllowRemoval(boolean prevent)
+    {
+        comm.preventAllowRemoval(0, prevent);
+        waitTillNotification();
+        if(currentStatus)
+            return true;
+        else
+            return false;
     }
 
     private List<FileEntry> getFileEntries(byte[] data)

@@ -51,4 +51,9 @@ public class Path
         return directoryContent;
     }
 
+    public void clearDirectoryContent()
+    {
+        directoryContent.clear();
+    }
+
 }

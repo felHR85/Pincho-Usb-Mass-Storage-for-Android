@@ -128,6 +128,12 @@ public class SCSICommunicator
         buffer.putCommand(formatUnit);
     }
 
+    public void preventAllowRemoval(int lun, boolean prevent)
+    {
+        SCSIPreventAllowRemoval preventAllowRemoval = new SCSIPreventAllowRemoval(lun, prevent);
+        buffer.putCommand(preventAllowRemoval);
+    }
+
     private BulkOnlyStatusInterface mCallback = new BulkOnlyStatusInterface()
     {
         @Override
