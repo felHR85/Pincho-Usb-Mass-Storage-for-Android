@@ -161,11 +161,6 @@ public class FileEntry
         return fileExtension;
     }
 
-    public Attributes getAttr()
-    {
-        return attr;
-    }
-
     public int getFileCreationTime()
     {
         return fileCreationTime;
@@ -194,5 +189,35 @@ public class FileEntry
     public long getSize()
     {
         return size;
+    }
+
+    public boolean isReadOnly()
+    {
+        return attr.isReadOnly();
+    }
+
+    public boolean isHidden()
+    {
+        return attr.isHidden();
+    }
+
+    public boolean isSystem()
+    {
+        return attr.isSystem();
+    }
+
+    public boolean isVolume()
+    {
+        return attr.isVolume();
+    }
+
+    public boolean isDirectory()
+    {
+        return attr.isDirectory();
+    }
+
+    public boolean isArchive()
+    {
+        return attr.isArchive();
     }
 }

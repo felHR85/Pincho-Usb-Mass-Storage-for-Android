@@ -11,6 +11,7 @@ import com.felhr.usbmassstorageforandroid.scsi.SCSIRead10Response;
 import com.felhr.usbmassstorageforandroid.scsi.SCSIResponse;
 import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -64,7 +65,41 @@ public class FATHandler
         }
     }
 
-    public void changeDirectory(String directory)
+    public boolean unMount()
+    {
+        return false;
+    }
+
+    public List<FileEntry> list()
+    {
+        return path.getDirectoryContent();
+    }
+
+    public List<FileEntry> getPath()
+    {
+        return path.getAbsolutePath();
+    }
+
+    public boolean changeDirectory(String directoryName)
+    {
+        Iterator<FileEntry> e = path.getDirectoryContent().iterator();
+        while(e.hasNext())
+        {
+            FileEntry entry = e.next();
+            if(entry.getLongName() == directoryName && entry.isDirectory())
+            {
+                path.addDirectory(entry);
+                long firstCluster = entry.getFirstCluster();
+                List<Long> clusterChain = getClusterChain(firstCluster);
+                byte[] data = readClusters(clusterChain);
+                path.setDirectoryContent(getFileEntries(data));
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void changeBack()
     {
         //TODO
     }
