@@ -11,9 +11,9 @@ import com.felhr.usbmassstorageforandroid.scsi.SCSIRead10Response;
 import com.felhr.usbmassstorageforandroid.scsi.SCSIResponse;
 import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
-import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -86,7 +86,7 @@ public class FATHandler
         while(e.hasNext())
         {
             FileEntry entry = e.next();
-            if(entry.getLongName() == directoryName && entry.isDirectory())
+            if(entry.getLongName().equals(directoryName) && entry.isDirectory())
             {
                 path.addDirectory(entry);
                 long firstCluster = entry.getFirstCluster();
@@ -100,15 +100,38 @@ public class FATHandler
         return false;
     }
 
-    public void changeDirBack()
+    public boolean changeDirBack()
     {
-        //TODO
-
+        FileEntry entry = path.getCurrentDirectory();
+        if(entry != null)
+        {
+            path.clearDirectoryContent();
+            path.deleteLastDir();
+            long firstCluster = entry.getFirstCluster();
+            List<Long> clusterChain = getClusterChain(firstCluster);
+            byte[] data = readClusters(clusterChain);
+            path.setDirectoryContent(getFileEntries(data));
+            return true;
+        }else
+        {
+            return false;
+        }
     }
 
-    public byte[] openFile(String fileName)
+    public byte[] readFile(String fileName)
     {
-        //TODO
+        Iterator<FileEntry> e = path.getDirectoryContent().iterator();
+        while(e.hasNext())
+        {
+            FileEntry entry = e.next();
+            if(entry.getLongName().equals(fileName) && !entry.isDirectory())
+            {
+                long firstCluster = entry.getFirstCluster();
+                List<Long> clusterChain = getClusterChain(firstCluster);
+                byte[] data = readClusters(clusterChain);
+                return Arrays.copyOf(data, (int) entry.getSize());
+            }
+        }
         return null;
     }
 

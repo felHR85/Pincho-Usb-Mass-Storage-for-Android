@@ -37,6 +37,19 @@ public class Path
         return path;
     }
 
+    public FileEntry getCurrentDirectory()
+    {
+        if(path.size() == 0)
+            return null;
+        else
+            return path.get(path.size() - 1);
+    }
+
+    public void deleteLastDir()
+    {
+        path.remove(path.size() - 1);
+    }
+
     /*
         Directory Content
      */
