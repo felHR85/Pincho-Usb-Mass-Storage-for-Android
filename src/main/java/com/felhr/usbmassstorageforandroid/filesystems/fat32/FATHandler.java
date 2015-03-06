@@ -239,9 +239,11 @@ public class FATHandler
             if((bufferEntry[11] & 1) == 1 && (bufferEntry[11] & 2) == 2 && (bufferEntry[11] & 4) == 4) // LFN Entry
             {
                 longFileEntryNames.add(parseLFN(bufferEntry));
+            }else if(bufferEntry[0] == 0x00 || bufferEntry[0] == 0xe5) //Empty Entry: No more entries
+            {
+                return entries;
             }else // Normal entry
             {
-                //TODO It could be a all 0x00 entry so it has not to be added (TODO)
                 if(longFileEntryNames != null) // LFN is present
                 {
                     String lfn = "";
