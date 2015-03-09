@@ -2,6 +2,7 @@ package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
+import android.util.Log;
 
 import com.felhr.usbmassstorageforandroid.filesystems.MasterBootRecord;
 import com.felhr.usbmassstorageforandroid.filesystems.Partition;
@@ -270,92 +271,91 @@ public class FATHandler
     {
         boolean endChar = false;
         List<Byte> unicodeList = new ArrayList<Byte>();
-
-        if(lfnData[1] != 0x00 && lfnData[2] != 0x00 && !endChar)
+        if((lfnData[1] != 0x00 || lfnData[2] != 0x00) && !endChar)
         {
             unicodeList.add(lfnData[1]);
             unicodeList.add(lfnData[2]);
         }else
             endChar = true;
 
-        if(lfnData[3] != 0x00 && lfnData[4] != 0x00 && !endChar)
+        if((lfnData[3] != 0x00 || lfnData[4] != 0x00) && !endChar)
         {
             unicodeList.add(lfnData[3]);
             unicodeList.add(lfnData[4]);
         }else
             endChar = true;
 
-        if(lfnData[5] != 0x00 && lfnData[6] != 0x00 && !endChar)
+        if((lfnData[5] != 0x00 || lfnData[6] != 0x00) && !endChar)
         {
             unicodeList.add(lfnData[5]);
             unicodeList.add(lfnData[6]);
         }else
             endChar = true;
 
-        if(lfnData[7] != 0x00 && lfnData[8] != 0x00 && !endChar)
+        if((lfnData[7] != 0x00 || lfnData[8] != 0x00) && !endChar)
         {
             unicodeList.add(lfnData[7]);
             unicodeList.add(lfnData[8]);
         }else
             endChar = true;
 
-        if(lfnData[9] != 0x00 && lfnData[10] != 0x00 && !endChar)
+        if((lfnData[9] != 0x00 || lfnData[10] != 0x00) && !endChar)
         {
             unicodeList.add(lfnData[9]);
             unicodeList.add(lfnData[10]);
         }else
             endChar = true;
 
-        if(lfnData[14] != 0x00 && lfnData[15] != 0x00 && !endChar)
+        if((lfnData[14] != 0x00 || lfnData[15] != 0x00) && !endChar)
         {
             unicodeList.add(lfnData[14]);
             unicodeList.add(lfnData[15]);
         }else
             endChar = true;
 
-        if(lfnData[16] != 0x00 && lfnData[17] != 0x00 && !endChar)
+        if((lfnData[16] != 0x00 || lfnData[17] != 0x00) && !endChar)
         {
             unicodeList.add(lfnData[16]);
             unicodeList.add(lfnData[17]);
         }else
             endChar = true;
 
-        if(lfnData[18] != 0x00 && lfnData[19] != 0x00 && !endChar)
+        if((lfnData[18] != 0x00 || lfnData[19] != 0x00) && !endChar)
         {
             unicodeList.add(lfnData[18]);
             unicodeList.add(lfnData[19]);
         }else
             endChar = true;
 
-        if(lfnData[20] != 0x00 && lfnData[21] != 0x00f && !endChar)
+        if((lfnData[20] != 0x00 || lfnData[21] != 0x00f) && !endChar)
         {
             unicodeList.add(lfnData[20]);
             unicodeList.add(lfnData[21]);
         }else
             endChar = true;
 
-        if(lfnData[22] != 0x00 && lfnData[23] != 0x00 && !endChar)
+        if((lfnData[22] != 0x00 || lfnData[23] != 0x00) && !endChar)
         {
             unicodeList.add(lfnData[22]);
             unicodeList.add(lfnData[23]);
         }else
             endChar = true;
 
-        if(lfnData[24] != 0x00 && lfnData[25] != 0x00 && !endChar)
+        if((lfnData[24] != 0x00 || lfnData[25] != 0x00) && !endChar)
         {
             unicodeList.add(lfnData[24]);
             unicodeList.add(lfnData[25]);
         }else
             endChar = true;
 
-        if(lfnData[28] != 0x00 && lfnData[29] != 0x00 && !endChar)
+        if((lfnData[28] != 0x00 || lfnData[29] != 0x00) && !endChar)
         {
             unicodeList.add(lfnData[28]);
             unicodeList.add(lfnData[29]);
         }else
             endChar = true;
 
-        if(lfnData[30] != 0x00 && lfnData[31] != 0x00 && !endChar)
+        if((lfnData[30] != 0x00 || lfnData[31] != 0x00) && !endChar)
         {
             unicodeList.add(lfnData[30]);
             unicodeList.add(lfnData[31]);
