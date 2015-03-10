@@ -2,7 +2,6 @@ package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
-import android.util.Log;
 
 import com.felhr.usbmassstorageforandroid.filesystems.MasterBootRecord;
 import com.felhr.usbmassstorageforandroid.filesystems.Partition;
@@ -237,13 +236,12 @@ public class FATHandler
         while(index1 < data.length)
         {
             System.arraycopy(data, index1, bufferEntry, 0, entrySize);
-            if(bufferEntry[0] == 0x00 || bufferEntry[0] == (byte) 0xe5)
-            {
-                return entries;
-            }else if((bufferEntry[11] & 1) == 1 && (bufferEntry[11] & 2) == 2 && (bufferEntry[11] & 4) == 4) // LFN Entry
+            if((bufferEntry[0] != 0x00 && bufferEntry[0] != (byte) 0xe5)
+                    && (bufferEntry[11] == 0x0f || bufferEntry[11] == 0x1f || bufferEntry[11] == 0x2f
+                    || bufferEntry[11] == 0x3f)) // LFN Entry
             {
                 longFileEntryNames.add(parseLFN(bufferEntry));
-            }else // Normal entry
+            }else if((bufferEntry[0] != 0x00 && bufferEntry[0] != (byte) 0xe5)) // Normal entry
             {
                 if(longFileEntryNames != null) // LFN is present
                 {
