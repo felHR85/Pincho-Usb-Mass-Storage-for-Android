@@ -10,16 +10,18 @@ import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
  */
 public class SCSIRead10Response extends SCSIResponse
 {
-    private DynamicBuffer readBuffer;
+    private byte[] readBuffer;
+    private int pointer;
 
-    private SCSIRead10Response()
+    private SCSIRead10Response(int lengthResponse)
     {
-        this.readBuffer = new DynamicBuffer(512, 2);
+        this.readBuffer = new byte[lengthResponse];
+        this.pointer = 0;
     }
 
-    public static SCSIRead10Response getResponse(byte[] data)
+    public static SCSIRead10Response getResponse(byte[] data, int lengthResponse)
     {
-        SCSIRead10Response response = new SCSIRead10Response();
+        SCSIRead10Response response = new SCSIRead10Response(lengthResponse);
         response.addToBuffer(data);
         return response;
     }
@@ -28,22 +30,22 @@ public class SCSIRead10Response extends SCSIResponse
     public Bundle getReadableResponse()
     {
         Bundle bundle = new Bundle();
-        byte[] buffer = readBuffer.getBuffer();
-        Log.i("length buffer", String.valueOf(buffer.length));
-        bundle.putString("readBuffer", HexUtil.hexToString(buffer));
+        Log.i("length buffer", String.valueOf(readBuffer.length));
+        bundle.putString("readBuffer", HexUtil.hexToString(readBuffer));
         return bundle;
     }
 
     public void addToBuffer(byte[] data)
     {
-        readBuffer.addElements(data);
+        System.arraycopy(data, 0, readBuffer, pointer, data.length);
+        pointer += data.length;
     }
 
     public byte[] getBuffer()
     {
-        return readBuffer.getBuffer();
+        return readBuffer;
     }
-
+    /*
     private class DynamicBuffer
     {
         private byte[] buffer;
@@ -77,4 +79,5 @@ public class SCSIRead10Response extends SCSIResponse
             return buffer;
         }
     }
+    */
 }

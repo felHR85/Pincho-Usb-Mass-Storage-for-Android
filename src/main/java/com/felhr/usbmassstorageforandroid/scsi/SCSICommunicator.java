@@ -26,9 +26,10 @@ public class SCSICommunicator
     /*
         Read10 response can be greater than a sector (512 bytes)
         In order to do not send 512 bytes packets to the upper layers
-        currentRead10Response will append all packets.
+        currentRead10Response will append all packets and will send them altogether.
      */
     private SCSIRead10Response currentRead10Response;
+    private int lengthResponse;
 
     public SCSICommunicator(UsbDevice mDevice, UsbDeviceConnection mConnection)
     {
@@ -78,7 +79,7 @@ public class SCSICommunicator
         SCSIRead10 read10 = new SCSIRead10(rdProtect, dpo, fua,
                 fuaNv, logicalBlockAddress, groupNumber,
                 transferLength);
-
+        lengthResponse = transferLength * 512;
         buffer.putCommand(read10);
     }
 
@@ -174,7 +175,7 @@ public class SCSICommunicator
             {
                 // This case is different because more than one sector are probably be read
                 if(currentRead10Response == null)
-                    currentRead10Response = SCSIRead10Response.getResponse(data);
+                    currentRead10Response = SCSIRead10Response.getResponse(data, lengthResponse);
                 else
                     currentRead10Response.addToBuffer(data);
             }else if(lastCommand instanceof SCSIReadCapacity10)
