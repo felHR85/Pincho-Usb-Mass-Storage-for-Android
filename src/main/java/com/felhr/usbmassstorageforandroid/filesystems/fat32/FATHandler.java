@@ -326,7 +326,7 @@ public class FATHandler
         }else
             endChar = true;
 
-        if((lfnData[20] != 0x00 || lfnData[21] != 0x00f) && !endChar)
+        if((lfnData[20] != 0x00 || lfnData[21] != 0x00) && !endChar)
         {
             unicodeList.add(lfnData[20]);
             unicodeList.add(lfnData[21]);
