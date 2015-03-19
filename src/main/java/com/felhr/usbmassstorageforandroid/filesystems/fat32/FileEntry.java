@@ -67,7 +67,8 @@ public class FileEntry
 
         System.arraycopy(data, 20, buffer, 0, 2);
         System.arraycopy(data, 26, buffer, 2, 2);
-        entry.firstCluster = UnsignedUtil.convertBytes2Long(buffer[0], buffer[1], buffer[2], buffer[3]);
+        // High and Low word of the cluster are Little-Endian
+        entry.firstCluster = UnsignedUtil.convertBytes2Long(buffer[1], buffer[0], buffer[3], buffer[2]);
 
         System.arraycopy(data, 22, buffer, 0, 2);
         timeData = (buffer[0] << 8) + buffer[1];
