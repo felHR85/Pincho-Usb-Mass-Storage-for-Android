@@ -82,11 +82,17 @@ public class FATHandler
 
     public boolean changeDir(String directoryName)
     {
-        Iterator<FileEntry> e = path.getDirectoryContent().iterator();
+        List<FileEntry> files = path.getDirectoryContent();
+        Iterator<FileEntry> e = files.iterator();
         while(e.hasNext())
         {
             FileEntry entry = e.next();
-            if(entry.getLongName().equals(directoryName) && entry.isDirectory())
+            String name;
+            if(!entry.getLongName().equals(""))
+                name = entry.getLongName();
+            else
+                name = entry.getShortName();
+            if(name.equalsIgnoreCase(directoryName) && entry.isDirectory())
             {
                 path.addDirectory(entry);
                 long firstCluster = entry.getFirstCluster();

@@ -1,5 +1,6 @@
 package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 
+
 import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
 import java.util.Arrays;
@@ -33,11 +34,17 @@ public class FileEntry
 
         if(longName != null)
             entry.longName = longName;
+        else
+            entry.longName = "";
 
         byte[] buffer = new byte[8];
 
         System.arraycopy(data, 0, buffer, 0, 8);
-        entry.shortName = new String(buffer);
+        int length = findNullChar(buffer);
+        if(length > 0)
+            entry.shortName = new String(buffer, 0, length);
+        else
+            entry.shortName = new String(buffer);
 
         System.arraycopy(data, 8, buffer, 0, 3);
         entry.fileExtension = new String(Arrays.copyOf(buffer, 3));
@@ -94,6 +101,18 @@ public class FileEntry
         int day = accessedDate & 0x1f;
 
         return new GregorianCalendar(year, month, day).getTime();
+    }
+
+    private static int findNullChar(byte[] data)
+    {
+        for(int i=0;i<=data.length-1;i++)
+        {
+            if(data[i] == (byte) 0x20)
+            {
+                return i;
+            }
+        }
+        return 0;
     }
 
     private static class Attributes
