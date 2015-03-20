@@ -130,7 +130,12 @@ public class FATHandler
         while(e.hasNext())
         {
             FileEntry entry = e.next();
-            if(entry.getLongName().equalsIgnoreCase(fileName) && !entry.isDirectory())
+            String name;
+            if(!entry.getLongName().equals(""))
+                name = entry.getLongName();
+            else
+                name = entry.getShortName();
+            if(name.equalsIgnoreCase(fileName) && !entry.isDirectory())
             {
                 long firstCluster = entry.getFirstCluster();
                 List<Long> clusterChain = getClusterChain(firstCluster);

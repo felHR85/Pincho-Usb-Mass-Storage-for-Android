@@ -77,7 +77,7 @@ public class FileEntry
         entry.lastModifiedDate = parseCreationDate(dateData, timeData);
 
         System.arraycopy(data, 28, buffer, 0, 4);
-        entry.size = UnsignedUtil.convertBytes2Long(buffer[0], buffer[1], buffer[2], buffer[3]);
+        entry.size = UnsignedUtil.convertBytes2Long(buffer[3], buffer[2], buffer[1], buffer[0]);
 
         return entry;
     }
