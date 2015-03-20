@@ -82,8 +82,7 @@ public class FATHandler
 
     public boolean changeDir(String directoryName)
     {
-        List<FileEntry> files = path.getDirectoryContent();
-        Iterator<FileEntry> e = files.iterator();
+        Iterator<FileEntry> e = path.getDirectoryContent().iterator();
         while(e.hasNext())
         {
             FileEntry entry = e.next();
