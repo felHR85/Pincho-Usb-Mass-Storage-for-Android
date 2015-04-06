@@ -28,7 +28,7 @@ public class Path
     public FileEntry retrieveDirectory()
     {
         FileEntry entry = path.get(path.size()-1);
-        path.remove(path.size()-1);
+        path.remove(path.size() - 1);
         return entry;
     }
 
@@ -45,9 +45,16 @@ public class Path
             return path.get(path.size() - 1);
     }
 
-    public void deleteLastDir()
+    public boolean deleteLastDir()
     {
-        path.remove(path.size() - 1);
+        if(path.size() != 0)
+        {
+            path.remove(path.size() - 1);
+            return true;
+        }else
+        {
+            return false;
+        }
     }
 
     /*

@@ -107,16 +107,23 @@ public class FATHandler
 
     public boolean changeDirBack()
     {
-        FileEntry entry = path.getCurrentDirectory();
-        if(entry != null)
+        FileEntry currentEntry = path.getCurrentDirectory();
+        if(currentEntry != null)
         {
             path.clearDirectoryContent();
-            path.deleteLastDir();
-            long firstCluster = entry.getFirstCluster();
-            List<Long> clusterChain = getClusterChain(firstCluster);
-            byte[] data = readClusters(clusterChain);
-            path.setDirectoryContent(getFileEntries(data));
-            return true;
+            if(path.deleteLastDir())
+            {
+                FileEntry backEntry = path.getCurrentDirectory();
+                long firstCluster = backEntry.getFirstCluster();
+                List<Long> clusterChain = getClusterChain(firstCluster);
+                byte[] data = readClusters(clusterChain);
+                path.setDirectoryContent(getFileEntries(data));
+                return true;
+            }else
+            {
+                //You are in root directory, no back dir to go!!
+                return false;
+            }
         }else
         {
             return false;
