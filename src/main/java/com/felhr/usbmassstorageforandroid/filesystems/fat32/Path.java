@@ -45,6 +45,11 @@ public class Path
             return path.get(path.size() - 1);
     }
 
+    public boolean isRoot()
+    {
+        return path.size() == 0;
+    }
+
     public boolean deleteLastDir()
     {
         if(path.size() != 0)
