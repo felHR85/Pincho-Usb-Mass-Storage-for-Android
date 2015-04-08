@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 20/2/15.
@@ -26,6 +27,7 @@ public class FATHandler
     private Object monitor;
     private SCSIResponse currentResponse;
     private boolean currentStatus;
+    private AtomicBoolean waiting;
 
     private MasterBootRecord mbr;
 
@@ -40,6 +42,7 @@ public class FATHandler
         this.comm.openSCSICommunicator(scsiInterface);
         this.monitor = new Object();
         this.path = new Path();
+        this.waiting = new AtomicBoolean(true);
     }
 
     public boolean mount(int partitionIndex)
@@ -431,14 +434,17 @@ public class FATHandler
     {
         synchronized(monitor)
         {
-            try
+            while(waiting.get())
             {
-                monitor.wait();
-            }catch(InterruptedException e)
-            {
-                e.printStackTrace();
+                try
+                {
+                    monitor.wait();
+                } catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
             }
-
+            waiting.set(true);
         }
     }
 
@@ -446,6 +452,7 @@ public class FATHandler
     {
         synchronized(monitor)
         {
+            waiting.set(false);
             monitor.notify();
         }
     }
