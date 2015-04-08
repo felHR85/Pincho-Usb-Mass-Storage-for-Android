@@ -1,11 +1,14 @@
 package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 
 
+import android.util.Log;
+
 import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
 import java.util.Arrays;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 2/3/15.
@@ -56,10 +59,19 @@ public class FileEntry
         entry.fileCreationTime = buffer[0];
 
         System.arraycopy(data, 14, buffer, 0, 2);
-        int timeData = (buffer[0] << 8) + buffer[1];
+
+        int value0 = UnsignedUtil.byteToUint(buffer[0]);
+        int value1 = UnsignedUtil.byteToUint(buffer[1]);
+
+        int timeData = (value1 << 8) + value0;
+
         System.arraycopy(data, 16, buffer, 0, 2);
-        int dateData = (buffer[0] << 8) + buffer[1];
-        entry.creationDate = parseCreationDate(dateData, timeData);
+
+        int value2 = UnsignedUtil.byteToUint(buffer[0]);
+        int value3 = UnsignedUtil.byteToUint(buffer[1]);
+        int dateData = (value3 << 8) + value2;
+
+        entry.creationDate = parseCreationDate(timeData, dateData);
 
         System.arraycopy(data, 18, buffer, 0, 2);
         int accessedDate = (buffer[0] << 8) + buffer[1];
@@ -71,10 +83,16 @@ public class FileEntry
         entry.firstCluster = UnsignedUtil.convertBytes2Long(buffer[1], buffer[0], buffer[3], buffer[2]);
 
         System.arraycopy(data, 22, buffer, 0, 2);
-        timeData = (buffer[0] << 8) + buffer[1];
+        value0 = UnsignedUtil.byteToUint(buffer[0]);
+        value1 = UnsignedUtil.byteToUint(buffer[1]);
+        timeData = (value1 << 8) + value0;
+
         System.arraycopy(data, 24, buffer, 0, 2);
-        dateData = (buffer[0] << 8) + buffer[1];
-        entry.lastModifiedDate = parseCreationDate(dateData, timeData);
+        value2 = UnsignedUtil.byteToUint(buffer[0]);
+        value3 = UnsignedUtil.byteToUint(buffer[1]);
+        dateData =  (value3 << 8) + value2;
+
+        entry.lastModifiedDate = parseCreationDate(timeData, dateData);
 
         System.arraycopy(data, 28, buffer, 0, 4);
         entry.size = UnsignedUtil.convertBytes2Long(buffer[3], buffer[2], buffer[1], buffer[0]);
@@ -84,15 +102,19 @@ public class FileEntry
 
     private static Date parseCreationDate(int timeData, int dateData)
     {
-        int hour = timeData >> 11;
-        int minute = (timeData >> 5) & 0xff;
+        int hour = timeData >> 11 ;
+        int minute = (timeData >> 5) & 0x3f;
         int second = (timeData & 0x1f) / 2;
 
+
         int year = 1980 + (dateData >> 9);
-        int month = (dateData >> 5) & 0xff;
+        int month = (dateData >> 5) & 0x0f;
         int day = dateData & 0x1f;
 
-        return new GregorianCalendar(year, month, day, hour, minute, second).getTime();
+        GregorianCalendar creationDate = new GregorianCalendar();
+        creationDate.setTimeZone(TimeZone.getDefault());
+        creationDate.set(year, --month, day, hour, minute, second);
+        return creationDate.getTime();
     }
 
     private static Date parseAccessedDate(int accessedDate)

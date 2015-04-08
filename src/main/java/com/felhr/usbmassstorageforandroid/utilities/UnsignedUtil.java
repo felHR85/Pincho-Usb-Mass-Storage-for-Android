@@ -132,6 +132,18 @@ public class UnsignedUtil
         }
     }
 
+    public static int byteToUint(byte value)
+    {
+        if(value < 0)
+        {
+            int complement2Value = ~value + 1;
+            return MAX_UNSIGNED_BYTE_VALUE  - complement2Value;
+        }else
+        {
+            return (int) value;
+        }
+    }
+
     public static long convertBytes2Long(byte...bytes)
     {
         long value = 0;
