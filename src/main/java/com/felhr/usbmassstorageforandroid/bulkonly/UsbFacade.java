@@ -254,40 +254,4 @@ public class UsbFacade
             keep.set(false);
         }
     }
-
-    /*
-
-    private class DataInThread extends Thread
-    {
-        @Override
-        public  void run()
-        {
-            Looper.prepare();
-            inHandler = new Handler()
-            {
-                @Override
-                public void handleMessage(Message msg)
-                {
-                    switch(msg.what)
-                    {
-                        case CBS_TRANSPORT:
-                            byte[] buffer = new byte[CommandWrapper.CBS_SIZE];
-                            mConnection.bulkTransfer(inEndpoint, buffer, CommandWrapper.CBS_SIZE, USB_TIMEOUT);
-                            if(facadeInterface != null)
-                                facadeInterface.cswData(buffer);
-                            break;
-                        case DATA_TO_HOST:
-                            int bufferLength = msg.arg1;
-                            byte[] dataBuffer = new byte[bufferLength];
-                            mConnection.bulkTransfer(inEndpoint, dataBuffer, bufferLength, USB_TIMEOUT_2);
-                            if(facadeInterface != null)
-                                facadeInterface.dataToHost(dataBuffer);
-                            break;
-                    }
-                }
-            };
-            Looper.loop();
-        }
-    }
-    */
 }

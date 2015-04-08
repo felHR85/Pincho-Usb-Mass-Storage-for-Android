@@ -10,16 +10,19 @@ import commandwrappers.CommandBlockWrapper;
  */
 public class SCSICommandBuffer
 {
+    private AtomicBoolean waiting;
     private LinkedList<SCSICommand> commands;
 
     public SCSICommandBuffer()
     {
+        this.waiting = new AtomicBoolean(true);
         this.commands = new LinkedList<SCSICommand>();
     }
 
     public synchronized void putCommand(SCSICommand command)
     {
         commands.push(command);
+        waiting.set(false);
         notify();
     }
 
@@ -34,18 +37,23 @@ public class SCSICommandBuffer
 
     public synchronized void goAhead()
     {
+        waiting.set(false);
         notify();
     }
 
     private void waitingForCommands()
     {
-        try
+        while(waiting.get())
         {
-            wait();
-        }catch(InterruptedException e)
-        {
-            e.printStackTrace();
+            try
+            {
+                wait();
+            } catch (InterruptedException e)
+            {
+                e.printStackTrace();
+            }
         }
+        waiting.set(true);
     }
 
 }
