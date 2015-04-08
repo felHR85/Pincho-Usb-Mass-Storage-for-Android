@@ -1,8 +1,6 @@
 package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 
 
-import android.util.Log;
-
 import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
 import java.util.Arrays;
@@ -120,10 +118,13 @@ public class FileEntry
     private static Date parseAccessedDate(int accessedDate)
     {
         int year = 1980 + (accessedDate >> 9);
-        int month = (accessedDate >> 5) & 0xff;
+        int month = (accessedDate >> 5) & 0x0f;
         int day = accessedDate & 0x1f;
 
-        return new GregorianCalendar(year, month, day).getTime();
+        GregorianCalendar accessDate = new GregorianCalendar();
+        accessDate.setTimeZone(TimeZone.getDefault());
+        accessDate.set(year, --month, day);
+        return accessDate.getTime();
     }
 
     private static int findNullChar(byte[] data)
