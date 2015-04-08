@@ -10,6 +10,7 @@ import commandwrappers.CommandBlockWrapper;
 public class SCSIPreventAllowRemoval extends SCSICommand
 {
     public static final byte PREVENTALLOWREMOVAL_OPERATION_CODE = 0x1e;
+    private static final int PREVENTALLOWREMOVAL_COMMAND_LENGTH = 6;
 
     private int logicalUnitNumber;
     private boolean prevent;
@@ -27,7 +28,7 @@ public class SCSIPreventAllowRemoval extends SCSICommand
     @Override
     public byte[] getSCSICommandBuffer()
     {
-        ByteBuffer buffer = ByteBuffer.allocate(6);
+        ByteBuffer buffer = ByteBuffer.allocate(PREVENTALLOWREMOVAL_COMMAND_LENGTH);
         buffer.put(PREVENTALLOWREMOVAL_OPERATION_CODE);
 
         byte firstByte = 0x00;
@@ -91,8 +92,17 @@ public class SCSIPreventAllowRemoval extends SCSICommand
     @Override
     public CommandBlockWrapper getCbw()
     {
-        //TODO
-        return null;
+        byte[] rawCommand = getCbwcb(getSCSICommandBuffer());
+        int dCBWDataTransferLength = 0;
+
+        byte bmCBWFlags = 0x00;
+
+        byte bCBWLUN = 0x00; // Check this!!!
+        byte bCBWCBLength = PREVENTALLOWREMOVAL_COMMAND_LENGTH;
+
+        CommandBlockWrapper cbw = new CommandBlockWrapper(dCBWDataTransferLength, bmCBWFlags, bCBWLUN, bCBWCBLength);
+        cbw.setCommandBlock(rawCommand);
+        return cbw;
     }
 
     @Override

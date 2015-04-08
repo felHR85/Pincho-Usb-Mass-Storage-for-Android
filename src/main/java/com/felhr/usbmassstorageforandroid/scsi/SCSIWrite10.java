@@ -104,15 +104,16 @@ public class SCSIWrite10 extends SCSICommand
     @Override
     public CommandBlockWrapper getCbw()
     {
-        byte[] rawInstruction = this.getSCSICommandBuffer();
+        byte[] rawCommand = this.getSCSICommandBuffer();
         int dCBWDataTransferLength = transferLength;
 
         byte bmCBWFlags = 0x00;
 
         byte bCBWLUN = 0x00; // Check this!!!
-        byte bCBWCBLength = (byte) (rawInstruction.length);
+        byte bCBWCBLength = (byte) (rawCommand.length);
 
         CommandBlockWrapper cbw = new CommandBlockWrapper(dCBWDataTransferLength, bmCBWFlags, bCBWLUN, bCBWCBLength);
+        cbw.setCommandBlock(rawCommand);
         return cbw;
     }
 
