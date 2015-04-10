@@ -10,6 +10,7 @@ public class Path
 {
     private List<FileEntry> path;
     private List<FileEntry> directoryContent;
+    private int freeEntries;
 
     public Path()
     {
@@ -65,10 +66,10 @@ public class Path
     /*
         Directory Content
      */
-
-    public void setDirectoryContent(List<FileEntry> entries)
+    public void setDirectoryContent(List<FileEntry> entries, int maxEntries)
     {
-        this.directoryContent = entries;
+        freeEntries = maxEntries - entries.size();
+        directoryContent = entries;
     }
 
     public List<FileEntry> getDirectoryContent()
@@ -79,6 +80,11 @@ public class Path
     public void clearDirectoryContent()
     {
         directoryContent.clear();
+    }
+
+    public int getFreeEntries()
+    {
+        return freeEntries;
     }
 
 }

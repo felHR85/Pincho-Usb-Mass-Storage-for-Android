@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class FATHandler
 {
     private SCSICommunicator comm;
-    private Object monitor;
+    private final Object monitor;
     private SCSIResponse currentResponse;
     private boolean currentStatus;
     private AtomicBoolean waiting;
@@ -59,8 +59,9 @@ public class FATHandler
             partition = mbr.getPartitions()[partitionIndex];
             reservedRegion = getReservedRegion();
             List<Long> clustersRoot = getClusterChain(2);
+            int maxEntries = (int) (clustersRoot.size() * reservedRegion.getBytesPerSector()) / 32;
             byte[] data = readClusters(clustersRoot);
-            path.setDirectoryContent(getFileEntries(data));
+            path.setDirectoryContent(getFileEntries(data), maxEntries);
             return true;
         }else
         {
@@ -99,9 +100,10 @@ public class FATHandler
                 path.addDirectory(entry);
                 long firstCluster = entry.getFirstCluster();
                 List<Long> clusterChain = getClusterChain(firstCluster);
+                int maxEntries = (int) (clusterChain.size() * reservedRegion.getBytesPerSector()) / 32;
                 byte[] data = readClusters(clusterChain);
                 path.clearDirectoryContent();
-                path.setDirectoryContent(getFileEntries(data));
+                path.setDirectoryContent(getFileEntries(data), maxEntries);
                 return true;
             }
         }
@@ -121,14 +123,16 @@ public class FATHandler
                     FileEntry backEntry = path.getCurrentDirectory();
                     long firstCluster = backEntry.getFirstCluster();
                     List<Long> clusterChain = getClusterChain(firstCluster);
+                    int maxEntries = (int) (clusterChain.size() * reservedRegion.getBytesPerSector()) / 32;
                     byte[] data = readClusters(clusterChain);
-                    path.setDirectoryContent(getFileEntries(data));
+                    path.setDirectoryContent(getFileEntries(data), maxEntries);
                     return true;
                 }else
                 {
                     List<Long> clustersRoot = getClusterChain(2);
+                    int maxEntries = (int) (clustersRoot.size() * reservedRegion.getBytesPerSector()) / 32;
                     byte[] data = readClusters(clustersRoot);
-                    path.setDirectoryContent(getFileEntries(data));
+                    path.setDirectoryContent(getFileEntries(data), maxEntries);
                     return true;
                 }
             }else
@@ -248,10 +252,7 @@ public class FATHandler
     {
         comm.preventAllowRemoval(0, prevent);
         waitTillNotification();
-        if(currentStatus)
-            return true;
-        else
-            return false;
+        return currentStatus;
     }
 
     private List<FileEntry> getFileEntries(byte[] data)
@@ -299,7 +300,7 @@ public class FATHandler
     {
         boolean endChar = false;
         List<Byte> unicodeList = new ArrayList<Byte>();
-        if((lfnData[1] != 0x00 || lfnData[2] != 0x00) && !endChar)
+        if((lfnData[1] != 0x00 || lfnData[2] != 0x00))
         {
             unicodeList.add(lfnData[1]);
             unicodeList.add(lfnData[2]);
@@ -464,7 +465,11 @@ public class FATHandler
         {
             if(status == 0)
             {
-                currentStatus = status == 0;
+                currentStatus = true;
+                scsiSucessNotification();
+            }else
+            {
+                currentStatus = false;
                 scsiSucessNotification();
             }
         }
