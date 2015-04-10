@@ -168,6 +168,21 @@ public class FATHandler
         return null;
     }
 
+    /*
+        Write a file in the current Path
+     */
+    public boolean writeNewFile(String fileName, byte[] data)
+    {
+        if(path.getFreeEntries() > 0) // There is space for at least one more fileEntry
+        {
+
+        }else // There is no space for a new entry. resize the directory.
+        {
+
+        }
+        return false;
+    }
+
     private void testUnitReady()
     {
         comm.testUnitReady();

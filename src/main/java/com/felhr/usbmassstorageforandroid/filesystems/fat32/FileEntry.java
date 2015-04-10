@@ -98,6 +98,13 @@ public class FileEntry
         return entry;
     }
 
+    public static FileEntry getEntry(String name, String fileExtension, long firstCluster, long size)
+    {
+        FileEntry entry = new FileEntry();
+        // TODO: GET FILE ENTRY
+        return entry;
+    }
+
     private static Date parseCreationDate(int timeData, int dateData)
     {
         int hour = timeData >> 11 ;
