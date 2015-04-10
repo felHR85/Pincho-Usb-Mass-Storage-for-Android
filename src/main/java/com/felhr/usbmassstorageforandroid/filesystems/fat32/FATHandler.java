@@ -178,6 +178,17 @@ public class FATHandler
 
         }else // There is no space for a new entry. resize the directory.
         {
+            if(!path.isRoot())
+            {
+                FileEntry dir = path.getCurrentDirectory();
+                List<Long> clusterChain = getClusterChain(dir.getFirstCluster());
+                long lastClusterchain = clusterChain.get(clusterChain.size()-1);
+                long newClusterChain = 0;
+
+            }else
+            {
+                List<Long> clusterChain = getClusterChain(2);
+            }
 
         }
         return false;
@@ -219,6 +230,20 @@ public class FATHandler
             }
         }
         return clusterChain;
+    }
+
+    private long getNewClusterLink()
+    {
+        long lbaFat = getEntryLBA(0);
+        long lbaFatEnd = lbaFat + reservedRegion.getNumberSectorsPerFat();
+        long index = lbaFat + 1;
+        boolean keep = true;
+        while(keep)
+        {
+            // TODO: keep moving forward loooking for a free entry.
+        }
+
+        return 0;
     }
 
     private byte[] readClusters(List<Long> clusters)
@@ -464,7 +489,7 @@ public class FATHandler
         }
     }
 
-    private void scsiSucessNotification()
+    private void scsiSuccessNotification()
     {
         synchronized(monitor)
         {
@@ -481,11 +506,11 @@ public class FATHandler
             if(status == 0)
             {
                 currentStatus = true;
-                scsiSucessNotification();
+                scsiSuccessNotification();
             }else
             {
                 currentStatus = false;
-                scsiSucessNotification();
+                scsiSuccessNotification();
             }
         }
 
