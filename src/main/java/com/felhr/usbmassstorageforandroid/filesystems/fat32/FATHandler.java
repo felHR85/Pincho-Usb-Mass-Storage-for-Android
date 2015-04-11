@@ -184,7 +184,8 @@ public class FATHandler
                 List<Long> clusterChain = getClusterChain(dir.getFirstCluster());
                 long lastCluster = clusterChain.get(clusterChain.size()-1);
                 long newCluster = getNewClusterLink(lastCluster);
-
+                clusterChain.add(newCluster);
+                // TODO: WRITE FILE
             }else
             {
                 List<Long> clusterChain = getClusterChain(2);
@@ -232,37 +233,91 @@ public class FATHandler
         return clusterChain;
     }
 
+    /*
+        Get a new link for the clusterchain of a file.
+        TODO: Check carefully this method
+     */
     private long getNewClusterLink(long cluster)
     {
+        boolean right = true;
+        boolean left = false;
         long lbaFat = getEntryLBA(cluster);
-        long lbaFatEnd = getEntryLBA(0) + reservedRegion.getNumberSectorsPerFat();
+        long lbaStart = getEntryLBA(0);
+        long lbaFatEnd = lbaStart + reservedRegion.getNumberSectorsPerFat();
         long indexLba = lbaFat + 1;
+        if(indexLba > lbaFatEnd)
+        {
+            right = false;
+            left = true;
+            indexLba = lbaFat - 1;
+        }
         boolean keep = true;
         while(keep)
         {
-            if(indexLba <= lbaFatEnd) // Find for a new cluster going to the right of the last cluster
-            {
-                byte[] data = readBytes(indexLba, 1);
-                if(data == null)
-                    return 0;
+            byte[] data = readBytes(indexLba, 1);
+            if(data == null)
+                return 0;
 
-                for(int indexEntry=0;indexEntry<=127;indexEntry++)
+            for(int indexEntry=0;indexEntry<=127;indexEntry++)
+            {
+                int[] indexes = getRealIndexes(indexEntry);
+                long value = UnsignedUtil.convertBytes2Long(data[indexes[3]], data[indexes[2]], data[indexes[1]], data[indexes[0]]);
+                if(value == 0x0000000) // Free entry
                 {
-                    int[] indexes = getRealIndexes(indexEntry);
-                    long value = UnsignedUtil.convertBytes2Long(data[indexes[3]], data[indexes[2]], data[indexes[1]], data[indexes[0]]);
-                    if(value == 0x0000000)
-                    {
-                        //TODO: Go to lastCluster update it witht the next node.
-                    }
+                        /*
+                            Free Entry: This node will point to 0xfffffff
+                            and the previous one to this node
+                         */
+
+                    long clusterEntry = getFatEntryFromLBA(indexLba, indexes[0]);
+                    byte[] nullPointerValue = UnsignedUtil.convertULong2Bytes(0xfffffff);
+                    data[indexes[0]] = nullPointerValue[3];
+                    data[indexes[1]] = nullPointerValue[2];
+                    data[indexes[2]] = nullPointerValue[1];
+                    data[indexes[3]] = nullPointerValue[0];
+
+                    // Write 0xfffffff to the last node
+                    if(!writeBytes(indexLba, data))
+                        return 0;
+
+                    // Update previous node
+                    byte[] clusterEntryBytes = UnsignedUtil.convertULong2Bytes(clusterEntry);
+                    byte[] dataPreviousCluster = readBytes(lbaFat, 1);
+                    if(dataPreviousCluster == null)
+                        return 0;
+
+                    int sectorIndex = getEntrySectorIndex(cluster); // range 0-127
+                    int[] previousClusterIndexes = getRealIndexes(sectorIndex);
+
+                    dataPreviousCluster[previousClusterIndexes[0]] = clusterEntryBytes[3];
+                    dataPreviousCluster[previousClusterIndexes[1]] = clusterEntryBytes[2];
+                    dataPreviousCluster[previousClusterIndexes[2]] = clusterEntryBytes[1];
+                    dataPreviousCluster[previousClusterIndexes[3]] = clusterEntryBytes[0];
+                    if(!writeBytes(indexLba, dataPreviousCluster))
+                        return 0;
+
+                    return clusterEntry;
                 }
-
-                indexLba++;
-            }else // Find for a new cluster from the beginning of the FAT
-            {
-
             }
-        }
 
+            if(right && indexLba < lbaFatEnd) // keep looking to the right
+            {
+                indexLba++;
+            }
+            else if(right && indexLba == lbaFatEnd) // No space on your right. Go left
+            {
+                right = false;
+                left = true;
+                indexLba = lbaFat - 1;
+            }else if(left && indexLba > lbaStart) // Keep looking to the left
+            {
+                indexLba--;
+            }else // No space available
+            {
+                keep = false;
+            }
+
+        }
         return 0;
     }
 
@@ -306,6 +361,12 @@ public class FATHandler
         {
             return null;
         }
+    }
+
+    private boolean writeBytes(long lba, byte[] data)
+    {
+        //TODO: writeBytes function
+        return false;
     }
 
     private boolean preventAllowRemoval(boolean prevent)
@@ -489,6 +550,12 @@ public class FATHandler
         indexes[3] = value + 3;
         return indexes;
     }
+
+    private long getFatEntryFromLBA(long lba, int index)
+    {
+        return (lba - getEntryLBA(0)) * 128 + (index / 4);
+    }
+
 
     private void waitTillNotification()
     {
