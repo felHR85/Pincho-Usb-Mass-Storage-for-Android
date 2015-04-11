@@ -182,8 +182,8 @@ public class FATHandler
             {
                 FileEntry dir = path.getCurrentDirectory();
                 List<Long> clusterChain = getClusterChain(dir.getFirstCluster());
-                long lastClusterchain = clusterChain.get(clusterChain.size()-1);
-                long newClusterChain = 0;
+                long lastCluster = clusterChain.get(clusterChain.size()-1);
+                long newCluster = getNewClusterLink(lastCluster);
 
             }else
             {
@@ -232,15 +232,35 @@ public class FATHandler
         return clusterChain;
     }
 
-    private long getNewClusterLink()
+    private long getNewClusterLink(long cluster)
     {
-        long lbaFat = getEntryLBA(0);
-        long lbaFatEnd = lbaFat + reservedRegion.getNumberSectorsPerFat();
-        long index = lbaFat + 1;
+        long lbaFat = getEntryLBA(cluster);
+        long lbaFatEnd = getEntryLBA(0) + reservedRegion.getNumberSectorsPerFat();
+        long indexLba = lbaFat + 1;
         boolean keep = true;
         while(keep)
         {
-            // TODO: keep moving forward loooking for a free entry.
+            if(indexLba <= lbaFatEnd) // Find for a new cluster going to the right of the last cluster
+            {
+                byte[] data = readBytes(indexLba, 1);
+                if(data == null)
+                    return 0;
+
+                for(int indexEntry=0;indexEntry<=127;indexEntry++)
+                {
+                    int[] indexes = getRealIndexes(indexEntry);
+                    long value = UnsignedUtil.convertBytes2Long(data[indexes[3]], data[indexes[2]], data[indexes[1]], data[indexes[0]]);
+                    if(value == 0x0000000)
+                    {
+                        //TODO: Go to lastCluster update it witht the next node.
+                    }
+                }
+
+                indexLba++;
+            }else // Find for a new cluster from the beginning of the FAT
+            {
+
+            }
         }
 
         return 0;
@@ -469,7 +489,6 @@ public class FATHandler
         indexes[3] = value + 3;
         return indexes;
     }
-
 
     private void waitTillNotification()
     {
