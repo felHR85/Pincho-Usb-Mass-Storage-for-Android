@@ -185,6 +185,8 @@ public class FATHandler
                 long lastCluster = clusterChain.get(clusterChain.size()-1);
                 long newCluster = getNewClusterLink(lastCluster);
                 clusterChain.add(newCluster);
+                // TODO: WRITE FILE Entry
+                // TODO: GET FILE CLUSTER CHAIN
                 // TODO: WRITE FILE
             }else
             {

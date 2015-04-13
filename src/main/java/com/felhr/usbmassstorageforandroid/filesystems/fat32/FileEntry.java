@@ -43,9 +43,12 @@ public class FileEntry
         System.arraycopy(data, 0, buffer, 0, 8);
         int length = findNullChar(buffer);
         if(length > 0)
+        {
             entry.shortName = new String(buffer, 0, length);
-        else
+        }else
+        {
             entry.shortName = new String(buffer);
+        }
 
         System.arraycopy(data, 8, buffer, 0, 3);
         entry.fileExtension = new String(Arrays.copyOf(buffer, 3));
@@ -144,6 +147,55 @@ public class FileEntry
             }
         }
         return 0;
+    }
+
+    public static String get8dot3Name(String nameFile)
+    {
+        if(nameFile.length() > 8)
+        {
+            String strStep1 = nameFile.replaceAll("\\s+", "");
+            boolean first = false;
+            StringBuilder strStep2Builder = new StringBuilder(strStep1);
+            for(int i=strStep1.length()-1;i>=0;i--)
+            {
+                if(strStep1.charAt(i) == '.' && !first)
+                {
+                    first = true;
+                }else if(strStep1.charAt(i) == '.' && first)
+                {
+                    strStep2Builder.deleteCharAt(i);
+                }
+            }
+
+            String[] strStep3 = strStep2Builder.toString().split("\\.");
+            String truncatedName= "";
+            if(strStep3[0].length() <= 6)
+                truncatedName = strStep3[0].substring(0, strStep3[0].length());
+            else
+                truncatedName = strStep3[0].substring(0, 6);
+
+            String truncatedExtension = "";
+            if(strStep3[1].length() <= 3)
+                truncatedExtension = strStep3[1].substring(0, strStep3[1].length());
+            else
+                truncatedExtension = strStep3[1].substring(0, 3);
+
+            truncatedName = truncatedName.replaceAll("[^\\p{ASCII}]", "_");
+            truncatedExtension = truncatedExtension.replaceAll("[^\\p{ASCII}]", "_");
+            truncatedName = truncatedName.toUpperCase();
+            truncatedExtension = truncatedExtension.toUpperCase();
+            truncatedName += "~" + "1"; // TODO: NOT ALWAYS ONE
+            return truncatedName;
+
+        }else
+        {
+            String strAscii = nameFile.replaceAll("[^\\p{ASCII}]", "_");
+            String[] strTruncated = strAscii.split("\\.");
+            if(strTruncated.length > 0)
+                return strTruncated[0];
+            else
+                return strAscii;
+        }
     }
 
     private static class Attributes
