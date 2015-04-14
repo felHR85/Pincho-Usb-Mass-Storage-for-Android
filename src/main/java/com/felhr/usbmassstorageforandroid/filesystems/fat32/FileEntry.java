@@ -6,6 +6,8 @@ import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
+import java.util.List;
 import java.util.TimeZone;
 
 /**
@@ -101,7 +103,7 @@ public class FileEntry
         return entry;
     }
 
-    public static FileEntry getEntry(String name, String fileExtension, long firstCluster, long size)
+    public static FileEntry getEntry(String name, long firstCluster, long size, List<FileEntry> files)
     {
         FileEntry entry = new FileEntry();
         // TODO: GET FILE ENTRY
@@ -149,8 +151,10 @@ public class FileEntry
         return 0;
     }
 
-    public static String get8dot3Name(String nameFile)
+    public static String[] get8dot3NameExtension(String nameFile, List<FileEntry> files)
     {
+        String[] fileAndExtension = new String[2];
+
         if(nameFile.length() > 8)
         {
             String strStep1 = nameFile.replaceAll("\\s+", "");
@@ -169,32 +173,81 @@ public class FileEntry
 
             String[] strStep3 = strStep2Builder.toString().split("\\.");
             String truncatedName= "";
-            if(strStep3[0].length() <= 6)
-                truncatedName = strStep3[0].substring(0, strStep3[0].length());
-            else
-                truncatedName = strStep3[0].substring(0, 6);
-
             String truncatedExtension = "";
-            if(strStep3[1].length() <= 3)
-                truncatedExtension = strStep3[1].substring(0, strStep3[1].length());
-            else
-                truncatedExtension = strStep3[1].substring(0, 3);
 
-            truncatedName = truncatedName.replaceAll("[^\\p{ASCII}]", "_");
-            truncatedExtension = truncatedExtension.replaceAll("[^\\p{ASCII}]", "_");
-            truncatedName = truncatedName.toUpperCase();
-            truncatedExtension = truncatedExtension.toUpperCase();
-            truncatedName += "~" + "1"; // TODO: NOT ALWAYS ONE
-            return truncatedName;
+            if(strStep3[0].length() <= 8) // Not need to create a unique shortFileName
+            {
+                truncatedName = strStep3[0].substring(0, strStep3[0].length());
+                if(strStep3[1].length() <= 3)
+                    truncatedExtension = strStep3[1].substring(0, strStep3[1].length());
+                else
+                    truncatedExtension = strStep3[1].substring(0, 3);
+
+                truncatedName = truncatedName.replaceAll("[^\\p{ASCII}]", "_");
+                truncatedExtension = truncatedExtension.replaceAll("[^\\p{ASCII}]", "_");
+                truncatedName = truncatedName.toUpperCase();
+                truncatedExtension = truncatedExtension.toUpperCase();
+
+                fileAndExtension[0] = truncatedName;
+                fileAndExtension[1] = truncatedExtension;
+
+                return fileAndExtension;
+            }else // Create a unique shortFileName
+            {
+                truncatedName = strStep3[0].substring(0, 6);
+                if(strStep3[1].length() <= 3)
+                    truncatedExtension = strStep3[1].substring(0, strStep3[1].length());
+                else
+                    truncatedExtension = strStep3[1].substring(0, 3);
+
+                truncatedName = truncatedName.replaceAll("[^\\p{ASCII}]", "_");
+                truncatedExtension = truncatedExtension.replaceAll("[^\\p{ASCII}]", "_");
+                truncatedName = truncatedName.toUpperCase();
+                truncatedExtension = truncatedExtension.toUpperCase();
+
+                if(files != null)
+                {
+                    int counter = 1;
+                    Iterator<FileEntry> e = files.iterator();
+                    while (e.hasNext())
+                    {
+                        FileEntry next = e.next();
+                        if(next.getShortName().length() == 8 && next.getShortName().substring(0, 6).equals(truncatedName))
+                            counter++;
+
+                    }
+                    if(counter < 9)
+                    {
+                        truncatedName += "~" + String.valueOf(counter);
+                    }else if(counter < 19)
+                    {
+                        truncatedName = truncatedName.substring(0, 5) + "~~" + String.valueOf(counter - 9);
+                    }else if(counter < 29)
+                    {
+                        truncatedName = truncatedName.substring(0, 4) + "~~~" + String.valueOf(counter - 19);
+                    }else if(counter < 39)
+                    {
+                        truncatedName = truncatedName.substring(0,3) + "~~~~" + String.valueOf(counter - 29);
+                    }
+
+                }else
+                {
+                    truncatedName += "~" + "1";
+                }
+
+                fileAndExtension[0] = truncatedName;
+                fileAndExtension[1] = truncatedExtension;
+                return fileAndExtension;
+            }
 
         }else
         {
-            String strAscii = nameFile.replaceAll("[^\\p{ASCII}]", "_");
+            String strNoSpaces =  nameFile.replaceAll("\\s+", "");
+            String strAscii = strNoSpaces.replaceAll("[^\\p{ASCII}]", "_");
             String[] strTruncated = strAscii.split("\\.");
-            if(strTruncated.length > 0)
-                return strTruncated[0];
-            else
-                return strAscii;
+            fileAndExtension[0] = strTruncated[0];
+            fileAndExtension[1] = strTruncated[1];
+            return fileAndExtension;
         }
     }
 
