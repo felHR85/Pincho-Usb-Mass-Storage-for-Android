@@ -209,26 +209,14 @@ public class FileEntry
                 {
                     int counter = 1;
                     Iterator<FileEntry> e = files.iterator();
-                    while (e.hasNext())
+                    while(e.hasNext())
                     {
                         FileEntry next = e.next();
                         if(next.getShortName().length() == 8 && next.getShortName().substring(0, 6).equals(truncatedName))
                             counter++;
+                    }
 
-                    }
-                    if(counter < 9)
-                    {
-                        truncatedName += "~" + String.valueOf(counter);
-                    }else if(counter < 19)
-                    {
-                        truncatedName = truncatedName.substring(0, 5) + "~~" + String.valueOf(counter - 9);
-                    }else if(counter < 29)
-                    {
-                        truncatedName = truncatedName.substring(0, 4) + "~~~" + String.valueOf(counter - 19);
-                    }else if(counter < 39)
-                    {
-                        truncatedName = truncatedName.substring(0,3) + "~~~~" + String.valueOf(counter - 29);
-                    }
+                    truncatedName += "~" + String.valueOf(counter);
 
                 }else
                 {
