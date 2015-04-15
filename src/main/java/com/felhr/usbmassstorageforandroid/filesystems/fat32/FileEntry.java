@@ -4,6 +4,7 @@ package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
@@ -103,10 +104,34 @@ public class FileEntry
         return entry;
     }
 
-    public static FileEntry getEntry(String name, long firstCluster, long size, List<FileEntry> files)
+    public static FileEntry getEntry(String name, long firstCluster, long size, List<FileEntry> files,
+                                     boolean isRead, boolean isHidden, boolean isdirectory, long lastModified)
     {
+        /*
+            System, volume and archive attributes not added yet because not accesible from Android API
+         */
         FileEntry entry = new FileEntry();
-        // TODO: GET FILE ENTRY
+        String[] fileAndExtension = get8dot3NameExtension(name, files);
+        entry.shortName = fileAndExtension[0];
+        entry.fileExtension = fileAndExtension[1];
+        entry.longName = name;
+        entry.firstCluster = firstCluster;
+        entry.size = size;
+        entry.attr = new Attributes();
+        entry.attr.setReadOnly(isRead);
+        entry.attr.setHidden(isHidden);
+        entry.attr.setDirectory(isdirectory);
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(lastModified);
+        /*
+            Only lastModifiedDate can be accessed through Java API.
+         */
+        entry.lastModifiedDate = cal.getTime();
+        entry.creationDate = cal.getTime();
+        entry.lastAccessedDate = cal.getTime();
+        entry.fileCreationTime = 0;
+
         return entry;
     }
 
@@ -149,6 +174,12 @@ public class FileEntry
             }
         }
         return 0;
+    }
+
+    public static byte[] getRawFileEntry()
+    {
+        // TODO: Get raw bytes from file Entry to be written in the USB Mass Storage Device
+        return null;
     }
 
     public static String[] get8dot3NameExtension(String nameFile, List<FileEntry> files)
@@ -247,9 +278,16 @@ public class FileEntry
         private boolean volume;
         private boolean directory;
         private boolean archive;
+        private byte attrByte;
+
+        public Attributes()
+        {
+            this.attrByte = 0x00;
+        }
 
         public Attributes(byte attrByte)
         {
+            this.attrByte = attrByte;
             readOnly = (attrByte & 1) == 1;
             hidden = (attrByte & (1 << 1)) == 2;
             system = (attrByte & (1 << 2)) == 4;
@@ -287,6 +325,48 @@ public class FileEntry
         {
             return archive;
         }
+
+        public byte getAttrByte()
+        {
+            return attrByte;
+        }
+
+        public void setReadOnly(boolean readOnly)
+        {
+            this.readOnly = readOnly;
+            if(readOnly)
+                attrByte |= 1;
+        }
+
+        public void setHidden(boolean hidden)
+        {
+            this.hidden = hidden;
+            if(hidden)
+                attrByte |= (1 << 1);
+        }
+
+        public void setSystem(boolean system)
+        {
+            this.system = system;
+        }
+
+        public void setVolume(boolean volume)
+        {
+            this.volume = volume;
+        }
+
+        public void setDirectory(boolean directory)
+        {
+            this.directory = directory;
+            if(directory)
+                attrByte |= (1 << 4);
+        }
+
+        public void setArchive(boolean archive)
+        {
+            this.archive = archive;
+        }
+
     }
 
     public String getLongName()

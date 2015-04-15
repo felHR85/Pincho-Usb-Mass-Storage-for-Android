@@ -175,7 +175,9 @@ public class FATHandler
     {
         if(path.getFreeEntries() > 0) // There is space for at least one more fileEntry
         {
-
+            // TODO: WRITE FILE Entry
+            // TODO: GET FILE CLUSTER CHAIN
+            // TODO: WRITE FILE
         }else // There is no space for a new entry. resize the directory.
         {
             if(!path.isRoot())
