@@ -3,6 +3,7 @@ package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 
 import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -176,9 +177,24 @@ public class FileEntry
         return 0;
     }
 
-    public static byte[] getRawFileEntry()
+    public byte[] getRawFileEntry()
     {
         // TODO: Get raw bytes from file Entry to be written in the USB Mass Storage Device
+        return null;
+    }
+
+    public byte[] getRawLongName() //Get all LFN entries of a Long name
+    {
+        int numberOfLfn = (longName.length() / 13) + 1;
+        byte counter = 1;
+        ByteBuffer lfnEntryBuffer = ByteBuffer.allocate(30);
+
+        byte[] lfnEntry = new byte[32];
+        for(int i=0;i<=longName.length()-1;i++)
+        {
+            char iChar = longName.charAt(i);
+        }
+
         return null;
     }
 
