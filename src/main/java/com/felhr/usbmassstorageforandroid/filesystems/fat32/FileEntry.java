@@ -184,8 +184,82 @@ public class FileEntry
 
     public byte[] getRawLongName() //Get all LFN entries of a Long name
     {
-        //TODO: Get raw bytes from LFN entry
-        return null;
+        int numberOfLfn = (longName.length() / 13) + 1;
+        byte[] lfnBuffer = new byte[numberOfLfn * 32];
+        byte ordinalEntry = (byte) numberOfLfn;
+        int charIndex = longName.length() - 1;
+        int n = 31;
+        for(int k=0;k<=numberOfLfn-1;k++)
+        {
+            while(n >= 0)
+            {
+                if(n == 0) // Ordinal Field
+                {
+                    lfnBuffer[32 * k + n] = ordinalEntry;
+                    ordinalEntry--;
+                    n--;
+                }else if(n == 11) // Attributes
+                {
+                    lfnBuffer[32 * k + n] = (byte) 0x0f;
+                    n--;
+                }else if(n == 12) // Type
+                {
+                    lfnBuffer[32 * k + n] = (byte) 0x00;
+                    n--;
+                }else if(n == 13) // Checksum
+                {
+                    lfnBuffer[32 * k + n] = createCheckSum(shortName);
+                    n--;
+                }else if(n == 26) // Cluster MSB, must equal 0
+                {
+                    lfnBuffer[32 * k + n] = (byte) 0x00;
+                    n--;
+                }else if(n == 27) // Cluster LSB, must equal 0
+                {
+                    lfnBuffer[32 * k + n] = (byte) 0x00;
+                    n--;
+                }else // Unicode characters
+                {
+                    if(charIndex != 0)
+                    {
+                        char nChar = longName.charAt(charIndex);
+                        byte msb = (byte) (nChar >> 8);
+                        byte lsb = (byte) (nChar & 0xff);
+                        lfnBuffer[32 * k + (n - 1)] = msb;
+                        lfnBuffer[32 * k + n] = lsb;
+                    }else
+                    {
+
+                    }
+                }
+            }
+            n = 31;
+        }
+        return lfnBuffer;
+    }
+
+    private String[] splitLongName()
+    {
+        int numberOfSubs = (longName.length() / 13) + 1;
+        String[] splitLongName = new String[numberOfSubs];
+        int n = 0;
+        int index1 = n * 13;
+        int index2 = index1 + 14;
+        for(int i=0;i<=numberOfSubs-1;i++)
+        {
+            if(index2 <= longName.length())
+            {
+                splitLongName[i] = longName.substring(index1, index2);
+                n++;
+                index1 = n * 13;
+                index2 = index1 + 14;
+            }else
+            {
+                splitLongName[i] = longName.substring(index1, longName.length());
+            }
+        }
+
+        return splitLongName;
     }
 
 
