@@ -3,7 +3,6 @@ package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 
 import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -179,23 +178,21 @@ public class FileEntry
 
     public byte[] getRawFileEntry()
     {
-        // TODO: Get raw bytes from file Entry to be written in the USB Mass Storage Device
+        //TODO: Get raw bytes from file Entry to be written in the USB Mass Storage Device
         return null;
     }
 
     public byte[] getRawLongName() //Get all LFN entries of a Long name
     {
-        int numberOfLfn = (longName.length() / 13) + 1;
-        byte counter = 1;
-        ByteBuffer lfnEntryBuffer = ByteBuffer.allocate(30);
-
-        byte[] lfnEntry = new byte[32];
-        for(int i=0;i<=longName.length()-1;i++)
-        {
-            char iChar = longName.charAt(i);
-        }
-
+        //TODO: Get raw bytes from LFN entry
         return null;
+    }
+
+
+    private byte createCheckSum(String shortName)
+    {
+        // TODO: Create CheckSum
+        return 0x00;
     }
 
     public static String[] get8dot3NameExtension(String nameFile, List<FileEntry> files)
