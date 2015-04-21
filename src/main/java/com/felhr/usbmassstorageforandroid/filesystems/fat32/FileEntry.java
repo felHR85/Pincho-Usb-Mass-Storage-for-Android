@@ -182,58 +182,72 @@ public class FileEntry
         return null;
     }
 
+    // Test this
     public byte[] getRawLongName() //Get all LFN entries of a Long name
     {
         int numberOfLfn = (longName.length() / 13) + 1;
+        String[] splitStrings = splitLongName();
         byte[] lfnBuffer = new byte[numberOfLfn * 32];
         byte ordinalEntry = (byte) numberOfLfn;
-        int charIndex = longName.length() - 1;
-        int n = 31;
-        for(int k=0;k<=numberOfLfn-1;k++)
+        int charIndex = 0;
+        boolean endOfString = false;
+        int n = 0;
+        for(int k=numberOfLfn-1;k>=0;k--)
         {
-            while(n >= 0)
+            String sub = splitStrings[k];
+            while(n <= 31)
             {
                 if(n == 0) // Ordinal Field
                 {
                     lfnBuffer[32 * k + n] = ordinalEntry;
                     ordinalEntry--;
-                    n--;
+                    n++;
                 }else if(n == 11) // Attributes
                 {
                     lfnBuffer[32 * k + n] = (byte) 0x0f;
-                    n--;
+                    n++;
                 }else if(n == 12) // Type
                 {
                     lfnBuffer[32 * k + n] = (byte) 0x00;
-                    n--;
+                    n++;
                 }else if(n == 13) // Checksum
                 {
                     lfnBuffer[32 * k + n] = createCheckSum(shortName);
-                    n--;
+                    n++;
                 }else if(n == 26) // Cluster MSB, must equal 0
                 {
                     lfnBuffer[32 * k + n] = (byte) 0x00;
-                    n--;
+                    n++;
                 }else if(n == 27) // Cluster LSB, must equal 0
                 {
                     lfnBuffer[32 * k + n] = (byte) 0x00;
-                    n--;
+                    n++;
+                }else if(endOfString) // No more characters, fill with 0xFF
+                {
+                    lfnBuffer[32 * k + n] = (byte) 0xff;
+                    n++;
                 }else // Unicode characters
                 {
-                    if(charIndex != 0)
+                    if(charIndex <= sub.length()-1)
                     {
-                        char nChar = longName.charAt(charIndex);
+                        char nChar = sub.charAt(charIndex);
                         byte msb = (byte) (nChar >> 8);
                         byte lsb = (byte) (nChar & 0xff);
-                        lfnBuffer[32 * k + (n - 1)] = msb;
-                        lfnBuffer[32 * k + n] = lsb;
-                    }else
+                        lfnBuffer[32 * k + n] = msb;
+                        lfnBuffer[32 * k + (n + 1)] = lsb;
+                        charIndex++;
+                        n += 2;
+                    }else if(charIndex > sub.length()-1 && !endOfString)
                     {
-
+                        endOfString = true;
+                        lfnBuffer[32 * k + (n - 1)] = (byte) 0x20;
+                        n++;
                     }
                 }
             }
-            n = 31;
+            charIndex = 0;
+            n = 0;
+            endOfString = false;
         }
         return lfnBuffer;
     }
