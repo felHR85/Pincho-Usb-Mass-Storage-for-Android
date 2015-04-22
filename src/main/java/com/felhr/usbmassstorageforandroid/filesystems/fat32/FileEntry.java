@@ -277,10 +277,25 @@ public class FileEntry
     }
 
 
-    private byte createCheckSum(String shortName)
+    private byte createCheckSum()
     {
-        // TODO: Create CheckSum
-        return 0x00;
+        String completeShortName = shortName + fileExtension;
+        int bit7;
+        int checksum = 0;
+        for(int character=0;character<11;character++)
+        {
+            if((1 & checksum) != 0)
+                bit7 = 0x80;
+            else
+                bit7 = 0x00;
+
+            checksum = checksum >> 1;
+            checksum = checksum | bit7;
+            checksum = checksum + (int) completeShortName.charAt(character);
+            checksum = checksum & 0xff;
+        }
+
+        return (byte) checksum;
     }
 
     public static String[] get8dot3NameExtension(String nameFile, List<FileEntry> files)
