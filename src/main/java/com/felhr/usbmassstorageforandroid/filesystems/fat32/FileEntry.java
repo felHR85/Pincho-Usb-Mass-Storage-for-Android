@@ -1,6 +1,7 @@
 package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 
 
+
 import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
 import java.util.Arrays;
@@ -182,24 +183,27 @@ public class FileEntry
         return null;
     }
 
-    // Test this
+
     public byte[] getRawLongName() //Get all LFN entries of a Long name
     {
         int numberOfLfn = (longName.length() / 13) + 1;
+
         String[] splitStrings = splitLongName();
         byte[] lfnBuffer = new byte[numberOfLfn * 32];
-        byte ordinalEntry = (byte) numberOfLfn;
+        byte ordinalEntry = (byte) (numberOfLfn + 0x40);
         int charIndex = 0;
         boolean endOfString = false;
         int n = 0;
-        for(int k=numberOfLfn-1;k>=0;k--)
+        for(int k=0;k<=numberOfLfn-1;k++)
         {
-            String sub = splitStrings[k];
+            String sub = splitStrings[numberOfLfn - k - 1];
             while(n <= 31)
             {
                 if(n == 0) // Ordinal Field
                 {
                     lfnBuffer[32 * k + n] = ordinalEntry;
+                    if(ordinalEntry > 0x40)
+                        ordinalEntry -= 0x40;
                     ordinalEntry--;
                     n++;
                 }else if(n == 11) // Attributes
@@ -212,7 +216,7 @@ public class FileEntry
                     n++;
                 }else if(n == 13) // Checksum
                 {
-                    lfnBuffer[32 * k + n] = createCheckSum(shortName);
+                    lfnBuffer[32 * k + n] = createCheckSum();
                     n++;
                 }else if(n == 26) // Cluster MSB, must equal 0
                 {
@@ -233,14 +237,15 @@ public class FileEntry
                         char nChar = sub.charAt(charIndex);
                         byte msb = (byte) (nChar >> 8);
                         byte lsb = (byte) (nChar & 0xff);
-                        lfnBuffer[32 * k + n] = msb;
-                        lfnBuffer[32 * k + (n + 1)] = lsb;
+                        lfnBuffer[32 * k + n] = lsb;
+                        lfnBuffer[32 * k + (n + 1)] = msb;
                         charIndex++;
                         n += 2;
                     }else if(charIndex > sub.length()-1 && !endOfString)
                     {
                         endOfString = true;
-                        lfnBuffer[32 * k + (n - 1)] = (byte) 0x20;
+                        lfnBuffer[32 * k + n] = (byte) 0x00;
+                        lfnBuffer[32 * k + (n + 1)] = (byte) 0x00;
                         n++;
                     }
                 }
