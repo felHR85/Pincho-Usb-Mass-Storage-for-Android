@@ -246,7 +246,7 @@ public class FileEntry
                         endOfString = true;
                         lfnBuffer[32 * k + n] = (byte) 0x00;
                         lfnBuffer[32 * k + (n + 1)] = (byte) 0x00;
-                        n++;
+                        n += 2;
                     }
                 }
             }
