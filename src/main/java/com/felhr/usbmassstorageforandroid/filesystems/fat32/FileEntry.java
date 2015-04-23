@@ -179,8 +179,81 @@ public class FileEntry
 
     public byte[] getRawFileEntry()
     {
-        //TODO: Get raw bytes from file Entry to be written in the USB Mass Storage Device
-        return null;
+        byte[] rawLongName = getRawLongName();
+        byte[] rawFileEntry = new byte[rawLongName.length + 32];
+        int index = rawLongName.length;
+
+        System.arraycopy(shortName.getBytes(), 0, rawFileEntry, index, 8);
+        index += 8;
+        System.arraycopy(fileExtension.getBytes(), 0, rawFileEntry, index, 3);
+        index += 3;
+        System.arraycopy(new byte[]{attr.getAttrByte()}, 0, rawFileEntry, index, 1);
+        index += 1;
+        System.arraycopy(new byte[]{0x00}, 0, rawFileEntry, index, 1);
+        index += 1;
+        System.arraycopy(new byte[]{(byte)fileCreationTime}, 0, rawFileEntry, index, 1);
+        index += 1;
+
+        /*
+          get Raw creation Date
+         */
+        Calendar dateCal = Calendar.getInstance();
+        dateCal.setTime(creationDate);
+        int value = 0;
+        int hours = dateCal.get(Calendar.HOUR);
+        int minutes = dateCal.get(Calendar.MINUTE);
+        int seconds = dateCal.get(Calendar.SECOND) / 2;
+
+        value += (hours << 11);
+        value += (minutes << 5) & 0x07e0;
+        value += (seconds & 0x1f);
+
+        byte lsb = (byte) (value & 0xff);
+        byte msb = (byte) (value >> 8);
+
+        System.arraycopy(new byte[]{msb, lsb}, 0, rawFileEntry, index, 2);
+        index += 2;
+        value = 0;
+        int years = dateCal.get(Calendar.YEAR);
+        int month = dateCal.get(Calendar.MONTH) + 1;
+        int day = dateCal.get(Calendar.DAY_OF_MONTH);
+
+        value += (years << 9);
+        value += (month << 5) & 0x1e0;
+        value += (day & 0x1f);
+
+        lsb = (byte) (value & 0xff);
+        msb = (byte) (value >> 8);
+
+        System.arraycopy(new byte[]{msb, lsb}, 0, rawFileEntry, index, 2);
+        index += 2;
+        value = 0;
+
+        /*
+          get Raw Last accesed date
+         */
+        dateCal.setTime(lastAccessedDate);
+        years = dateCal.get(Calendar.YEAR);
+        month = dateCal.get(Calendar.MONTH) + 1;
+        day = dateCal.get(Calendar.DAY_OF_MONTH);
+
+        value += (years << 9);
+        value += (month << 5) & 0x1e0;
+        value += (day & 0x1f);
+
+        lsb = (byte) (value & 0xff);
+        msb = (byte) (value >> 8);
+
+        System.arraycopy(new byte[]{msb, lsb}, 0, rawFileEntry, index, 2);
+        index += 2;
+        value = 0;
+
+        /*
+          get high word cluster
+         */
+
+
+        return rawFileEntry;
     }
 
 
