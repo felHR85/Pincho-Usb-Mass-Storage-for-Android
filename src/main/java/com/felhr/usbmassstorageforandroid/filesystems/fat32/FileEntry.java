@@ -251,7 +251,61 @@ public class FileEntry
         /*
           get high word cluster
          */
+        int cluster = UnsignedUtil.ulongToInt(firstCluster);
+        msb = (byte) (cluster >> 24);
+        lsb = (byte) (cluster >> 16 & 0xff);
+        System.arraycopy(new byte[]{lsb, msb}, 0, rawFileEntry, index, 2);
+        index += 2;
 
+        /*
+          get last modified date
+         */
+        dateCal.setTime(lastModifiedDate);
+        hours = dateCal.get(Calendar.HOUR);
+        minutes = dateCal.get(Calendar.MINUTE);
+        seconds = dateCal.get(Calendar.SECOND) / 2;
+
+        value += (hours << 11);
+        value += (minutes << 5) & 0x07e0;
+        value += (seconds & 0x1f);
+
+        lsb = (byte) (value & 0xff);
+        msb = (byte) (value >> 8);
+
+        System.arraycopy(new byte[]{msb, lsb}, 0, rawFileEntry, index, 2);
+        index += 2;
+        value = 0;
+        years = dateCal.get(Calendar.YEAR);
+        month = dateCal.get(Calendar.MONTH) + 1;
+        day = dateCal.get(Calendar.DAY_OF_MONTH);
+
+        value += (years << 9);
+        value += (month << 5) & 0x1e0;
+        value += (day & 0x1f);
+
+        lsb = (byte) (value & 0xff);
+        msb = (byte) (value >> 8);
+
+        System.arraycopy(new byte[]{msb, lsb}, 0, rawFileEntry, index, 2);
+        index += 2;
+
+        /*
+         get low word cluster
+         */
+        msb = (byte) (cluster >> 8 & 0xff);
+        lsb = (byte) (cluster & 0xff);
+        System.arraycopy(new byte[]{lsb, msb}, 0, rawFileEntry, index, 2);
+        index += 2;
+
+        /*
+         get file size
+         */
+        int uSize = UnsignedUtil.ulongToInt(size);
+        byte b1 = (byte) (uSize >> 24);
+        byte b2 = (byte) (uSize >> 16 & 0xff);
+        byte b3 = (byte) (uSize >> 8 & 0xff);
+        byte b4 = (byte) (uSize & 0xff);
+        System.arraycopy(new byte[]{b4, b3, b2, b1}, 0, rawFileEntry, index, 4);
 
         return rawFileEntry;
     }
