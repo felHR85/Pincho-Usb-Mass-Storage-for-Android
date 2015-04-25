@@ -170,10 +170,11 @@ public class FATHandler
 
     /*
         Write a file in the current Path
+        TODO: Another possible prototype would be: public boolean writeNewFile(java.io.File file);
      */
-    public boolean writeNewFile(String fileName, byte[] data)
+    public boolean writeNewFile(String fileName, byte[] data, boolean isRead, boolean isHidden, boolean isdirectory, long lastModified)
     {
-        if(path.getFreeEntries() > 0) // There is space for at least one more fileEntry
+        if(path.getFreeEntries() > 0) // There is space for at least one more fileEntry TODO: Not correct check. Fix!
         {
             // TODO: WRITE FILE Entry
             // TODO: GET FILE CLUSTER CHAIN
@@ -182,11 +183,32 @@ public class FATHandler
         {
             if(!path.isRoot())
             {
+                // Add a new cluster to the dir clusterchain
                 FileEntry dir = path.getCurrentDirectory();
                 List<Long> clusterChain = getClusterChain(dir.getFirstCluster());
                 long lastCluster = clusterChain.get(clusterChain.size()-1);
                 long newCluster = getNewClusterLink(lastCluster);
                 clusterChain.add(newCluster);
+
+                // get dir fileEntries and obtain a valid cluster chain for the new file
+                byte[] dirData = readClusters(clusterChain);
+                List<Long> fileClusterChain = new ArrayList<Long>();
+                int clusters = (int) (data.length / (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector())) + 1;
+                long indexCluster = 2;
+                while(fileClusterChain.size() != clusters)
+                {
+                    indexCluster = getNewClusterLink(indexCluster);
+                    fileClusterChain.add(indexCluster);
+                }
+
+                // get a raw FileEntry
+                FileEntry newEntry = FileEntry.getEntry(
+                        fileName, fileClusterChain.get(0), data.length, path.getDirectoryContent()
+                        , isRead, isHidden, isdirectory, lastModified);
+                byte[] rawFileEntry = newEntry.getRawFileEntry();
+
+                // Write fileEntry in dir clusters
+
                 // TODO: WRITE FILE Entry
                 // TODO: GET FILE CLUSTER CHAIN
                 // TODO: WRITE FILE
@@ -384,6 +406,20 @@ public class FATHandler
         comm.preventAllowRemoval(0, prevent);
         waitTillNotification();
         return currentStatus;
+    }
+
+    private int getFirstFileEntryIndex(byte[] data)
+    {
+        int k = 0;
+        boolean keep = true;
+        while(keep)
+        {
+            if(data[k * 32] == 0x00)
+                keep = false;
+            else
+                k++;
+        }
+        return k * 32;
     }
 
     private List<FileEntry> getFileEntries(byte[] data)
