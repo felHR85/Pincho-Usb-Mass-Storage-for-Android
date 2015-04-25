@@ -181,11 +181,17 @@ public class FATHandler
             // TODO: WRITE FILE
         }else // There is no space for a new entry. resize the directory.
         {
-            if(!path.isRoot())
-            {
                 // Add a new cluster to the dir clusterchain
-                FileEntry dir = path.getCurrentDirectory();
-                List<Long> clusterChain = getClusterChain(dir.getFirstCluster());
+                List<Long> clusterChain;
+                if(!path.isRoot())
+                {
+                    FileEntry dir = path.getCurrentDirectory();
+                    clusterChain = getClusterChain(dir.getFirstCluster());
+                }else
+                {
+                    clusterChain = getClusterChain(2);
+                }
+
                 long lastCluster = clusterChain.get(clusterChain.size()-1);
                 long newCluster = getNewClusterLink(lastCluster);
                 clusterChain.add(newCluster);
@@ -208,21 +214,11 @@ public class FATHandler
                 byte[] rawFileEntry = newEntry.getRawFileEntry();
 
                 // Write fileEntry in dir clusters
+                int index = getFirstFileEntryIndex(dirData);
+                System.arraycopy(rawFileEntry, 0, dirData, index, rawFileEntry.length);
 
-                // TODO: WRITE FILE Entry
-                // TODO: GET FILE CLUSTER CHAIN
-                // TODO: WRITE FILE
-            }else
-            {
-                List<Long> clusterChain = getClusterChain(2);
-                long lastCluster = clusterChain.get(clusterChain.size()-1);
-                long newCluster = getNewClusterLink(lastCluster);
-                clusterChain.add(newCluster);
-                // TODO: WRITE FILE Entry
-                // TODO: GET FILE CLUSTER CHAIN
-                // TODO: WRITE FILE
-            }
-
+                // Write file in
+                return writeClusters(fileClusterChain, data);
         }
         return false;
     }
@@ -351,6 +347,30 @@ public class FATHandler
 
         }
         return 0;
+    }
+
+    private boolean writeClusters(List<Long> clusters, byte[] data)
+    {
+        int bufferLength = (int) (reservedRegion.getBytesPerSector() * reservedRegion.getSectorsPerCluster());
+        int k = 0;
+        byte[] buffer = new byte[bufferLength];
+        long firstClusterLba = partition.getLbaStart() + reservedRegion.getNumberReservedSectors()
+                + (reservedRegion.getFatCopies() * reservedRegion.getNumberSectorsPerFat());
+        Iterator<Long> e = clusters.iterator();
+        while(e.hasNext())
+        {
+            long cluster = e.next();
+            long lbaCluster =  firstClusterLba + (cluster - 2) * reservedRegion.getSectorsPerCluster();
+            if(k * bufferLength + bufferLength <= data.length)
+                System.arraycopy(data, k * bufferLength, buffer, 0, bufferLength);
+            else
+                System.arraycopy(data, k * bufferLength, buffer, 0, data.length - k * bufferLength);
+            boolean result = writeBytes(lbaCluster, buffer);
+            if(!result)
+                return false;
+            k++;
+        }
+        return true;
     }
 
     private byte[] readClusters(List<Long> clusters)
