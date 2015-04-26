@@ -1,5 +1,9 @@
 package com.felhr.usbmassstorageforandroid.scsi;
 
+import android.util.Log;
+
+import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
+
 import java.nio.ByteBuffer;
 
 import commandwrappers.CommandBlockWrapper;
@@ -10,6 +14,7 @@ import commandwrappers.CommandBlockWrapper;
 public class SCSIWrite10 extends SCSICommand
 {
     public static byte WRITE10_OPERATION_CODE = 0x2a;
+    private static final byte WRITE10_COMMAND_LENGTH = 10;
 
     private int wrProtect;
     private boolean dpo;
@@ -105,12 +110,15 @@ public class SCSIWrite10 extends SCSICommand
     public CommandBlockWrapper getCbw()
     {
         byte[] rawCommand = getCbwcb(getSCSICommandBuffer());
+        Log.i("Buffer state", "SCSI: " + HexUtil.hexToString(rawCommand));
         int dCBWDataTransferLength = transferLength;
 
         byte bmCBWFlags = 0x00;
 
+        bmCBWFlags |= (1 << 7); // From device to host
+
         byte bCBWLUN = 0x00; // Check this!!!
-        byte bCBWCBLength = (byte) (rawCommand.length);
+        byte bCBWCBLength = WRITE10_COMMAND_LENGTH;
 
         CommandBlockWrapper cbw = new CommandBlockWrapper(dCBWDataTransferLength, bmCBWFlags, bCBWLUN, bCBWCBLength);
         cbw.setCommandBlock(rawCommand);

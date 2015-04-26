@@ -199,7 +199,9 @@ public class FATHandler
                 // get dir fileEntries and obtain a valid cluster chain for the new file
                 byte[] dirData = readClusters(clusterChain);
                 List<Long> fileClusterChain = new ArrayList<Long>();
-                int clusters = (int) (data.length / (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector())) + 1;
+                int clusters = (int) (data.length / (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()));
+                if(data.length % (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()) != 0)
+                    clusters += 1;
                 long indexCluster = 2;
                 while(fileClusterChain.size() != clusters)
                 {
@@ -417,8 +419,13 @@ public class FATHandler
 
     private boolean writeBytes(long lba, byte[] data)
     {
-        //TODO: writeBytes function
-        return false;
+        int length = data.length / 512;
+        if(data.length % 512 != 0)
+            length += 1;
+
+        comm.write10(0, false, false, false, UnsignedUtil.ulongToInt(lba), 0, length, data);
+        waitTillNotification();
+        return currentStatus;
     }
 
     private boolean preventAllowRemoval(boolean prevent)
