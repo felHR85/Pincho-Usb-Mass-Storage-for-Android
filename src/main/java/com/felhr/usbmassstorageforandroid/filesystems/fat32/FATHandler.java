@@ -174,55 +174,55 @@ public class FATHandler
      */
     public boolean writeNewFile(String fileName, byte[] data, boolean isRead, boolean isHidden, boolean isdirectory, long lastModified)
     {
-        if(path.getFreeEntries() > 0) // There is space for at least one more fileEntry TODO: Not correct check. Fix!
+        // Get clusterchain of the current folder
+        List<Long> clusterChain;
+        if(!path.isRoot())
         {
-            // TODO: WRITE FILE Entry
-            // TODO: GET FILE CLUSTER CHAIN
-            // TODO: WRITE FILE
-        }else // There is no space for a new entry. resize the directory.
+            FileEntry dir = path.getCurrentDirectory();
+            clusterChain = getClusterChain(dir.getFirstCluster());
+        }else
         {
-                // Add a new cluster to the dir clusterchain
-                List<Long> clusterChain;
-                if(!path.isRoot())
-                {
-                    FileEntry dir = path.getCurrentDirectory();
-                    clusterChain = getClusterChain(dir.getFirstCluster());
-                }else
-                {
-                    clusterChain = getClusterChain(2);
-                }
-
-                long lastCluster = clusterChain.get(clusterChain.size()-1);
-                long newCluster = getNewClusterLink(lastCluster);
-                clusterChain.add(newCluster);
-
-                // get dir fileEntries and obtain a valid cluster chain for the new file
-                byte[] dirData = readClusters(clusterChain);
-                List<Long> fileClusterChain = new ArrayList<Long>();
-                int clusters = (int) (data.length / (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()));
-                if(data.length % (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()) != 0)
-                    clusters += 1;
-                long indexCluster = 2;
-                while(fileClusterChain.size() != clusters)
-                {
-                    indexCluster = getNewClusterLink(indexCluster);
-                    fileClusterChain.add(indexCluster);
-                }
-
-                // get a raw FileEntry
-                FileEntry newEntry = FileEntry.getEntry(
-                        fileName, fileClusterChain.get(0), data.length, path.getDirectoryContent()
-                        , isRead, isHidden, isdirectory, lastModified);
-                byte[] rawFileEntry = newEntry.getRawFileEntry();
-
-                // Write fileEntry in dir clusters
-                int index = getFirstFileEntryIndex(dirData);
-                System.arraycopy(rawFileEntry, 0, dirData, index, rawFileEntry.length);
-
-                // Write file in
-                return writeClusters(fileClusterChain, data);
+            clusterChain = getClusterChain(2);
         }
-        return false;
+
+        // LFN entries required + 1 fileEntry + 1 more if fileName.length() % 11 != 0
+        int fileEntriesRequired = fileName.length() / 11 + 1;
+        if(fileName.length() % 11 != 0)
+            fileEntriesRequired += 1;
+
+        // There is no space for a new entry. resize the directory.
+        if(path.getFreeEntries() < fileEntriesRequired)
+        {
+            long lastCluster = clusterChain.get(clusterChain.size()-1);
+            long newCluster = getNewClusterLink(lastCluster);
+            clusterChain.add(newCluster);
+        }
+
+        // get dir fileEntries and obtain a valid cluster chain for the new file
+        byte[] dirData = readClusters(clusterChain);
+        List<Long> fileClusterChain = new ArrayList<Long>();
+        int clusters = (int) (data.length / (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()));
+        if(data.length % (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()) != 0)
+            clusters += 1;
+        long indexCluster = 2;
+        while(fileClusterChain.size() != clusters)
+        {
+            indexCluster = getNewClusterLink(indexCluster);
+            fileClusterChain.add(indexCluster);
+        }
+
+        // get a raw FileEntry
+        FileEntry newEntry = FileEntry.getEntry(
+                fileName, fileClusterChain.get(0), data.length, path.getDirectoryContent()
+                , isRead, isHidden, isdirectory, lastModified);
+        byte[] rawFileEntry = newEntry.getRawFileEntry();
+
+        // Write fileEntry in dir clusters
+        int index = getFirstFileEntryIndex(dirData);
+        System.arraycopy(rawFileEntry, 0, dirData, index, rawFileEntry.length);
+
+        // Write file in
+        return writeClusters(fileClusterChain, data);
     }
 
     private void testUnitReady()
