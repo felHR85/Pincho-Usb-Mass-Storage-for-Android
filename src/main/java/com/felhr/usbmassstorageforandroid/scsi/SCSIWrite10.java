@@ -111,11 +111,9 @@ public class SCSIWrite10 extends SCSICommand
     {
         byte[] rawCommand = getCbwcb(getSCSICommandBuffer());
         Log.i("Buffer state", "SCSI: " + HexUtil.hexToString(rawCommand));
-        int dCBWDataTransferLength = transferLength;
+        int dCBWDataTransferLength = transferLength * 512;
 
         byte bmCBWFlags = 0x00;
-
-        bmCBWFlags |= (1 << 7); // From device to host
 
         byte bCBWLUN = 0x00; // Check this!!!
         byte bCBWCBLength = WRITE10_COMMAND_LENGTH;

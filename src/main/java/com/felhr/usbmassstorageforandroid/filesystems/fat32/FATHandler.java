@@ -205,6 +205,7 @@ public class FATHandler
         if(data.length % (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()) != 0)
             clusters += 1;
         long indexCluster = 2;
+
         while(fileClusterChain.size() != clusters)
         {
             indexCluster = getNewClusterLink(indexCluster);
@@ -216,6 +217,7 @@ public class FATHandler
                 fileName, fileClusterChain.get(0), data.length, path.getDirectoryContent()
                 , isRead, isHidden, isdirectory, lastModified);
         byte[] rawFileEntry = newEntry.getRawFileEntry();
+
 
         // Write fileEntry in dir clusters
         int index = getFirstFileEntryIndex(dirData);
@@ -313,6 +315,7 @@ public class FATHandler
                     // Update previous node
                     byte[] clusterEntryBytes = UnsignedUtil.convertULong2Bytes(clusterEntry);
                     byte[] dataPreviousCluster = readBytes(lbaFat, 1);
+
                     if(dataPreviousCluster == null)
                         return 0;
 

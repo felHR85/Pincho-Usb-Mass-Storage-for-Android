@@ -45,11 +45,13 @@ public class BulkOnlyCommunicator
         int dataLength = cbw.getdCBWDataLength();
         if(data != null && dataLength > 0)
         {
+            flagDataIN.set(false);
             flagDataOUT.set(true);
             dataBufferOut = data;
 
         }else if(data == null && dataLength > 0)
         {
+            flagDataOUT.set(false);
             flagDataIN.set(true);
             bufferINSize = dataLength;
         }else

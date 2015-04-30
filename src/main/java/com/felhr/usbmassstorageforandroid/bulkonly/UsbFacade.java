@@ -28,7 +28,6 @@ public class UsbFacade
     private final int USB_ENDPOINT_LENGTH = 512;
 
     private static final int USB_TIMEOUT = 500;
-    private static final int USB_TIMEOUT_2 = 5000;
 
     private static final int CBW_TRANSPORT = 0;
     private static final int DATA_FROM_HOST = 1;
@@ -140,7 +139,6 @@ public class UsbFacade
     {
         String inquiryBuffer = HexUtil.hexToString(cbwBuffer);
         Log.i("Buffer state", "CBW: " + inquiryBuffer);
-        Log.i("Buffer state", "CBW Length:" + String.valueOf(cbwBuffer.length));
         outHandler.obtainMessage(CBW_TRANSPORT, cbwBuffer).sendToTarget();
     }
 
