@@ -66,10 +66,14 @@ public class Path
     /*
         Directory Content
      */
-    public void setDirectoryContent(List<FileEntry> entries, int maxEntries)
+    public void setDirectoryContent(List<FileEntry> entries)
     {
-        freeEntries = maxEntries - entries.size();
         directoryContent = entries;
+    }
+
+    public void setFreeEntries(int freeEntries)
+    {
+        this.freeEntries = freeEntries;
     }
 
     public List<FileEntry> getDirectoryContent()

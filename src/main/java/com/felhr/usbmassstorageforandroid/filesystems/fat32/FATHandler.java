@@ -2,6 +2,7 @@ package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
+import android.util.Log;
 
 import com.felhr.usbmassstorageforandroid.filesystems.MasterBootRecord;
 import com.felhr.usbmassstorageforandroid.filesystems.Partition;
@@ -9,6 +10,7 @@ import com.felhr.usbmassstorageforandroid.scsi.SCSICommunicator;
 import com.felhr.usbmassstorageforandroid.scsi.SCSIInterface;
 import com.felhr.usbmassstorageforandroid.scsi.SCSIRead10Response;
 import com.felhr.usbmassstorageforandroid.scsi.SCSIResponse;
+import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
 import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
 import java.io.UnsupportedEncodingException;
@@ -59,9 +61,8 @@ public class FATHandler
             partition = mbr.getPartitions()[partitionIndex];
             reservedRegion = getReservedRegion();
             List<Long> clustersRoot = getClusterChain(2);
-            int maxEntries = (int) (clustersRoot.size() * reservedRegion.getBytesPerSector()) / 32;
             byte[] data = readClusters(clustersRoot);
-            path.setDirectoryContent(getFileEntries(data), maxEntries);
+            path.setDirectoryContent(getFileEntries(data));
             return true;
         }else
         {
@@ -100,10 +101,9 @@ public class FATHandler
                 path.addDirectory(entry);
                 long firstCluster = entry.getFirstCluster();
                 List<Long> clusterChain = getClusterChain(firstCluster);
-                int maxEntries = (int) (clusterChain.size() * reservedRegion.getBytesPerSector()) / 32;
                 byte[] data = readClusters(clusterChain);
                 path.clearDirectoryContent();
-                path.setDirectoryContent(getFileEntries(data), maxEntries);
+                path.setDirectoryContent(getFileEntries(data));
                 return true;
             }
         }
@@ -123,16 +123,14 @@ public class FATHandler
                     FileEntry backEntry = path.getCurrentDirectory();
                     long firstCluster = backEntry.getFirstCluster();
                     List<Long> clusterChain = getClusterChain(firstCluster);
-                    int maxEntries = (int) (clusterChain.size() * reservedRegion.getBytesPerSector()) / 32;
                     byte[] data = readClusters(clusterChain);
-                    path.setDirectoryContent(getFileEntries(data), maxEntries);
+                    path.setDirectoryContent(getFileEntries(data));
                     return true;
                 }else
                 {
                     List<Long> clustersRoot = getClusterChain(2);
-                    int maxEntries = (int) (clustersRoot.size() * reservedRegion.getBytesPerSector()) / 32;
                     byte[] data = readClusters(clustersRoot);
-                    path.setDirectoryContent(getFileEntries(data), maxEntries);
+                    path.setDirectoryContent(getFileEntries(data));
                     return true;
                 }
             }else
@@ -225,6 +223,7 @@ public class FATHandler
 
         // Write file in
         return writeClusters(fileClusterChain, data);
+
     }
 
     private void testUnitReady()
@@ -312,6 +311,11 @@ public class FATHandler
                     if(!writeBytes(indexLba, data))
                         return 0;
 
+                    // Set the last cluster to 0x00
+                    byte[] initData = new byte[(int) (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector())];
+                    if(!writeBytes(getEntryLBA(clusterEntry), initData))
+                        return 0;
+
                     // Update previous node
                     byte[] clusterEntryBytes = UnsignedUtil.convertULong2Bytes(clusterEntry);
                     byte[] dataPreviousCluster = readBytes(lbaFat, 1);
@@ -326,7 +330,7 @@ public class FATHandler
                     dataPreviousCluster[previousClusterIndexes[1]] = clusterEntryBytes[2];
                     dataPreviousCluster[previousClusterIndexes[2]] = clusterEntryBytes[1];
                     dataPreviousCluster[previousClusterIndexes[3]] = clusterEntryBytes[0];
-                    if(!writeBytes(indexLba, dataPreviousCluster))
+                    if(!writeBytes(lbaFat, dataPreviousCluster))
                         return 0;
 
                     return clusterEntry;
@@ -447,13 +451,16 @@ public class FATHandler
             if(data[k * 32] == 0x00)
                 keep = false;
             else
+            {
                 k++;
+            }
         }
         return k * 32;
     }
 
     private List<FileEntry> getFileEntries(byte[] data)
     {
+        int freeEntries = 0;
         List<FileEntry> entries = new ArrayList<FileEntry>();
         List<String> longFileEntryNames = new ArrayList<String>();
         int entrySize = 32;
@@ -463,6 +470,7 @@ public class FATHandler
         while(index1 < data.length)
         {
             System.arraycopy(data, index1, bufferEntry, 0, entrySize);
+            Log.i("FILE_ENTRIES", HexUtil.hexToString(bufferEntry));
             if((bufferEntry[0] != 0x00 && bufferEntry[0] != (byte) 0xe5)
                     && (bufferEntry[11] == 0x0f || bufferEntry[11] == 0x1f || bufferEntry[11] == 0x2f
                     || bufferEntry[11] == 0x3f)) // LFN Entry
@@ -486,10 +494,14 @@ public class FATHandler
                 {
                     entries.add(FileEntry.getEntry(null, bufferEntry));
                 }
+            }else if(bufferEntry[0] == 0x00) // Free entries
+            {
+                freeEntries++;
             }
             i++;
             index1 = entrySize * i;
         }
+        path.setFreeEntries(freeEntries);
         return entries;
     }
 
