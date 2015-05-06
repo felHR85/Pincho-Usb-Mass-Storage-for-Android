@@ -192,7 +192,7 @@ public class FATHandler
         if(path.getFreeEntries() < fileEntriesRequired)
         {
             long lastCluster = clusterChain.get(clusterChain.size()-1);
-            long newCluster = getNewClusterLink(lastCluster);
+            long newCluster = getNewClusterLink(lastCluster, 0);
             clusterChain.add(newCluster);
         }
 
@@ -202,11 +202,11 @@ public class FATHandler
         int clusters = (int) (data.length / (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()));
         if(data.length % (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()) != 0)
             clusters += 1;
-        long indexCluster = 2;
+        long indexCluster = getNewClusterLink(2, 1);
 
         while(fileClusterChain.size() != clusters)
         {
-            indexCluster = getNewClusterLink(indexCluster);
+            indexCluster = getNewClusterLink(indexCluster, 0);
             fileClusterChain.add(indexCluster);
         }
 
@@ -219,6 +219,7 @@ public class FATHandler
 
         // Write fileEntry in dir clusters
         int index = getFirstFileEntryIndex(dirData);
+        Log.i("RAW_FILE_ENTRY", HexUtil.hexToString(rawFileEntry));
         System.arraycopy(rawFileEntry, 0, dirData, index, rawFileEntry.length);
 
         // Write file in
@@ -246,8 +247,7 @@ public class FATHandler
         boolean keepSearching = true;
         List<Long> clusterChain = new ArrayList<Long>();
         clusterChain.add(cluster);
-        while(keepSearching)
-        {
+        while(keepSearching) {
             long lbaCluster = getEntryLBA(cluster);
             byte[] sector = readBytes(lbaCluster, 1);
             int entrySectorIndex = getEntrySectorIndex(cluster);
@@ -266,21 +266,27 @@ public class FATHandler
 
     /*
         Get a new link for the clusterchain of a file.
+        This method works for resize the clusterchain of a dir
+        cluster = usually last cluster if you want to resize or 2 in mode 1
+        mode = 0 -> resize clusterchain
+        mode = 1 -> return first empty cluster
         TODO: Check carefully this method
      */
-    private long getNewClusterLink(long cluster)
+    private long getNewClusterLink(long cluster, int mode)
     {
         boolean right = true;
         boolean left = false;
         long lbaFat = getEntryLBA(cluster);
+        int currentIndex = getEntrySectorIndex(cluster) + 1;
         long lbaStart = getEntryLBA(0);
         long lbaFatEnd = lbaStart + reservedRegion.getNumberSectorsPerFat();
-        long indexLba = lbaFat + 1;
-        if(indexLba > lbaFatEnd)
+        long indexLba = lbaFat;
+        if(indexLba == lbaFatEnd)
         {
             right = false;
             left = true;
             indexLba = lbaFat - 1;
+            currentIndex = 0;
         }
         boolean keep = true;
         while(keep)
@@ -289,7 +295,7 @@ public class FATHandler
             if(data == null)
                 return 0;
 
-            for(int indexEntry=0;indexEntry<=127;indexEntry++)
+            for(int indexEntry=currentIndex;indexEntry<=127;indexEntry++)
             {
                 int[] indexes = getRealIndexes(indexEntry);
                 long value = UnsignedUtil.convertBytes2Long(data[indexes[3]], data[indexes[2]], data[indexes[1]], data[indexes[0]]);
@@ -301,6 +307,8 @@ public class FATHandler
                          */
 
                     long clusterEntry = getFatEntryFromLBA(indexLba, indexes[0]);
+                    if(mode == 1) // Return the last cluster without writing anything
+                        return clusterEntry;
                     byte[] nullPointerValue = UnsignedUtil.convertULong2Bytes(0xfffffff);
                     data[indexes[0]] = nullPointerValue[3];
                     data[indexes[1]] = nullPointerValue[2];
@@ -337,6 +345,8 @@ public class FATHandler
                 }
             }
 
+            currentIndex = 0;
+
             if(right && indexLba < lbaFatEnd) // keep looking to the right
             {
                 indexLba++;
@@ -353,10 +363,10 @@ public class FATHandler
             {
                 keep = false;
             }
-
         }
         return 0;
     }
+
 
     private boolean writeClusters(List<Long> clusters, byte[] data)
     {
