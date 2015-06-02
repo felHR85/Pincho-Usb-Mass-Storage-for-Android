@@ -2,6 +2,9 @@ package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 
 
 
+import android.util.Log;
+
+import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
 import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
 import java.util.Arrays;
@@ -181,8 +184,10 @@ public class FileEntry
     {
         byte[] rawLongName = getRawLongName();
         byte[] rawFileEntry = new byte[rawLongName.length + 32];
-        int index = rawLongName.length;
+        int index =0;
 
+        System.arraycopy(rawLongName, 0, rawFileEntry, index, rawLongName.length);
+        index = rawLongName.length;
         System.arraycopy(shortName.getBytes(), 0, rawFileEntry, index, 8);
         index += 8;
         System.arraycopy(fileExtension.getBytes(), 0, rawFileEntry, index, 3);
@@ -313,7 +318,9 @@ public class FileEntry
 
     public byte[] getRawLongName() //Get all LFN entries of a Long name
     {
-        int numberOfLfn = (longName.length() / 13) + 1;
+        int numberOfLfn = (longName.length() / 13);
+        if(longName.length() % 13 != 0)
+            numberOfLfn += 1;
 
         String[] splitStrings = splitLongName();
         byte[] lfnBuffer = new byte[numberOfLfn * 32];
@@ -324,6 +331,7 @@ public class FileEntry
         for(int k=0;k<=numberOfLfn-1;k++)
         {
             String sub = splitStrings[numberOfLfn - k - 1];
+            Log.i("DEBUG","SUB_STRING: " +  sub);
             while(n <= 31)
             {
                 if(n == 0) // Ordinal Field
@@ -381,6 +389,7 @@ public class FileEntry
             n = 0;
             endOfString = false;
         }
+        Log.i("DEBUG", "LFN bytes:" + HexUtil.hexToString(lfnBuffer));
         return lfnBuffer;
     }
 
