@@ -293,6 +293,7 @@ public class FATHandler
                     Log.i("CLUSTER_CHAIN", String.valueOf(clusterEntry));
                     clusterChainList.add(clusterEntry);
                     lbaChain[i] = lbaIndex;
+                    entries[i] = indexEntry;
                     if(++i == clusters) // All empty clusters has been located. Set the clusterchain
                     {
                         for(int j=0;j<=clusters-1;j++)
