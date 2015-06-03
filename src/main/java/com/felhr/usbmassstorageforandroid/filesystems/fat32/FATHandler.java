@@ -269,6 +269,7 @@ public class FATHandler
 
     /*
       Set a clusterchain on the FAT
+      Return null if is not possible to get clusterchain
      */
     private List<Long> setClusterChain(int clusters)
     {
@@ -324,6 +325,8 @@ public class FATHandler
                 }
             }
             lbaIndex++;
+            if(lbaIndex > lbaFatEnd)
+                return null;
         }
         return clusterChainList;
     }
