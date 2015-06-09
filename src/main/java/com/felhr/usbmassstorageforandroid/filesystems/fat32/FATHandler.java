@@ -334,8 +334,46 @@ public class FATHandler
     private long resizeClusterChain(long lastCluster)
     {
         long lbaFATLastCluster = getEntryLBA(lastCluster);
-        int sectorIndex = getEntrySectorIndex(lastCluster);
-        long index = lbaFATLastCluster;
+        byte[] data = readBytes(lbaFATLastCluster, 1);
+        int sectorIndex = getEntrySectorIndex(lastCluster); // 0-127
+        if(sectorIndex < 127)
+            sectorIndex++;
+        long indexFat = lbaFATLastCluster;
+        long lbaFatEnd = getEntryLBA(0) + reservedRegion.getNumberSectorsPerFat();
+        boolean keep = true;
+        while(keep)
+        {
+            for(int i=sectorIndex; i<=127;i++)
+            {
+                int[] indexes = getRealIndexes(i);
+                long value = UnsignedUtil.convertBytes2Long(data[indexes[3]], data[indexes[2]], data[indexes[1]], data[indexes[0]]);
+                if(value == 0x0000000)
+                {
+                    long clusterEntry = getFatEntryFromLBA(indexFat, indexes[0]);
+                    List<Long> singleList = new ArrayList<Long>();
+                    singleList.add(clusterEntry);
+                    byte[] zeroedCluster = new byte[(int) (reservedRegion.getBytesPerSector() * reservedRegion.getSectorsPerCluster())];
+                    writeClusters(singleList, zeroedCluster); // Set the referred cluster to 0x00 (whole sector is empty)
+                    // TODO: set the previous last cluster fat entry to the current last cluster.
+                    // TODO: set the current last cluster fat entry to NUL 0xfff..
+                    /*
+                    byte[] lastClusterRaw = UnsignedUtil.convertULong2Bytes(clusterEntry);
+                    data[indexes[0]] = lastClusterRaw[3];
+                    data[indexes[1]] = lastClusterRaw[2];
+                    data[indexes[2]] = lastClusterRaw[1];
+                    data[indexes[3]] = lastClusterRaw[0];
+                    */
+
+                    writeBytes(indexFat, data);
+
+                    return clusterEntry;
+                }
+            }
+            indexFat ++;
+            if(indexFat > lbaFatEnd)
+                return 0; // 0 is not a valid cluster
+            data = readBytes(indexFat, 1);
+        }
         // TODO: Resize clusterchain
         return 0;
     }
