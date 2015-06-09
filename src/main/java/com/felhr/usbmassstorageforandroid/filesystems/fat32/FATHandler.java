@@ -195,8 +195,6 @@ public class FATHandler
             Log.i("DEBUG", "RESIZE DIR");
             long lastCluster = clusterChain.get(clusterChain.size()-1);
             // TODO: Resize clusterchain method needed
-            //long newCluster = getNewClusterLink(lastCluster, 0);
-            //clusterChain.add(newCluster);
         }
 
         // get dir fileEntries and obtain a valid cluster chain for the new file
@@ -468,9 +466,13 @@ public class FATHandler
                 {
                     entries.add(FileEntry.getEntry(null, bufferEntry));
                 }
-            }else if(bufferEntry[0] == 0x00) // Free entries
+            }else if(bufferEntry[0] == 0x00) // Free entries batch started. Calculate free entries and break
             {
-                freeEntries++;
+                int freeBytes = data.length - index1;
+                freeEntries = freeBytes / 32 + 1;
+                if(freeEntries % 32 != 0)
+                    freeEntries += 1;
+                break;
             }
             i++;
             index1 = entrySize * i;
