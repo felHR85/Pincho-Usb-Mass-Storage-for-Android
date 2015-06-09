@@ -204,6 +204,8 @@ public class FATHandler
         if(data.length % (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()) != 0)
             clusters += 1;
         fileClusterChain = setClusterChain(clusters);
+        if(fileClusterChain == null) // It was no possible to get a clusterchain
+            return false;
 
         // get a raw FileEntry
         FileEntry newEntry = FileEntry.getEntry(
@@ -248,14 +250,12 @@ public class FATHandler
         while(keepSearching)
         {
             long lbaCluster = getEntryLBA(cluster);
-            Log.i("DEBUG", "Cluster LBA: " + String.valueOf(lbaCluster));
             byte[] sector = readBytes(lbaCluster, 1);
             int entrySectorIndex = getEntrySectorIndex(cluster);
             int[] indexes = getRealIndexes(entrySectorIndex);
             cluster = UnsignedUtil.convertBytes2Long(sector[indexes[3]], sector[indexes[2]], sector[indexes[1]], sector[indexes[0]]);
             if(cluster != 0xfffffff)
             {
-                Log.i("DEBUG", "Cluster: " + String.valueOf(cluster));
                 clusterChain.add(cluster);
             }else
             {
@@ -289,7 +289,6 @@ public class FATHandler
                 if(value == 0x0000000)
                 {
                     long clusterEntry = getFatEntryFromLBA(lbaIndex, indexes[0]);
-                    Log.i("CLUSTER_CHAIN", String.valueOf(clusterEntry));
                     clusterChainList.add(clusterEntry);
                     lbaChain[i] = lbaIndex;
                     entries[i] = indexEntry;
@@ -329,6 +328,18 @@ public class FATHandler
         return clusterChainList;
     }
 
+    /*
+       Resize a clusterchain. Returns the new last cluster
+     */
+    private long resizeClusterChain(long lastCluster)
+    {
+        long lbaFATLastCluster = getEntryLBA(lastCluster);
+        int sectorIndex = getEntrySectorIndex(lastCluster);
+        long index = lbaFATLastCluster;
+        // TODO: Resize clusterchain
+        return 0;
+    }
+
 
     private boolean writeClusters(List<Long> clusters, byte[] data)
     {
@@ -342,7 +353,6 @@ public class FATHandler
         {
             long cluster = e.next();
             long lbaCluster =  firstClusterLba + (cluster - 2) * reservedRegion.getSectorsPerCluster();
-            Log.i("CLUSTER_CHAIN", "LBA CLUSTER" + String.valueOf(lbaCluster));
             if(k * bufferLength + bufferLength <= data.length)
                 System.arraycopy(data, k * bufferLength, buffer, 0, bufferLength);
             else
