@@ -353,23 +353,32 @@ public class FATHandler
                     List<Long> singleList = new ArrayList<Long>();
                     singleList.add(clusterEntry);
                     byte[] zeroedCluster = new byte[(int) (reservedRegion.getBytesPerSector() * reservedRegion.getSectorsPerCluster())];
-                    writeClusters(singleList, zeroedCluster); // Set the referred cluster to 0x00 (whole sector is empty)
-                    // TODO: set the previous last cluster fat entry to the current last cluster.
-                    // TODO: set the current last cluster fat entry to NUL 0xfff..
-                    /*
+                    writeClusters(singleList, zeroedCluster); // Set the referred cluster to 0x00 (whole cluster is empty)
+
+                    // Previous last cluster FAT entry now points to the new last cluster
+                    byte[] dataPrevLBA = readBytes(lbaFATLastCluster, 1);
+                    sectorIndex = getEntrySectorIndex(lastCluster); // 0-127
+                    int[] prevIndexes = getRealIndexes(sectorIndex);
                     byte[] lastClusterRaw = UnsignedUtil.convertULong2Bytes(clusterEntry);
+                    dataPrevLBA[prevIndexes[0]] = lastClusterRaw[3];
+                    dataPrevLBA[prevIndexes[1]] = lastClusterRaw[2];
+                    dataPrevLBA[prevIndexes[2]] = lastClusterRaw[1];
+                    dataPrevLBA[prevIndexes[3]] = lastClusterRaw[0];
+                    writeBytes(lbaFATLastCluster, dataPrevLBA);
+
+                    // Current last cluster FAT entry points to NUL 0xfff...
+                    lastClusterRaw = UnsignedUtil.convertULong2Bytes(0xfffffff);
                     data[indexes[0]] = lastClusterRaw[3];
                     data[indexes[1]] = lastClusterRaw[2];
                     data[indexes[2]] = lastClusterRaw[1];
                     data[indexes[3]] = lastClusterRaw[0];
-                    */
-
                     writeBytes(indexFat, data);
 
                     return clusterEntry;
                 }
             }
-            indexFat ++;
+            indexFat++;
+            sectorIndex = 0;
             if(indexFat > lbaFatEnd)
                 return 0; // 0 is not a valid cluster
             data = readBytes(indexFat, 1);
