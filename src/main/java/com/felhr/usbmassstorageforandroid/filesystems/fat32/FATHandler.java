@@ -13,6 +13,10 @@ import com.felhr.usbmassstorageforandroid.scsi.SCSIResponse;
 import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
 import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -166,11 +170,42 @@ public class FATHandler
         return null;
     }
 
+    public boolean writeNewFile(java.io.File file)
+    {
+        byte[] fileData = new byte[(int) file.length()];
+        try
+        {
+            DataInputStream dis = new DataInputStream(new FileInputStream(file));
+            try
+            {
+                dis.readFully(fileData);
+            }catch(IOException e)
+            {
+                e.printStackTrace();
+                return false;
+            }
+
+        }catch(FileNotFoundException e)
+        {
+            e.printStackTrace();
+            return false;
+        }
+
+        String fileName = file.getName();
+        boolean isReadOnly = !file.canWrite();
+        boolean isHidden = file.isHidden();
+        boolean isDirectory = file.isDirectory();
+        long lastModified = file.lastModified();
+
+        return writeNewFile(fileName, fileData, isReadOnly, isHidden, isDirectory, lastModified);
+    }
+
+
     /*
         Write a file in the current Path
-        TODO: Another possible prototype would be: public boolean writeNewFile(java.io.File file);
+
      */
-    public boolean writeNewFile(String fileName, byte[] data, boolean isRead, boolean isHidden, boolean isdirectory, long lastModified)
+    public boolean writeNewFile(String fileName, byte[] data, boolean isReadOnly, boolean isHidden, boolean isdirectory, long lastModified)
     {
         // Get clusterchain of the current folder
         List<Long> clusterChain;
@@ -213,7 +248,7 @@ public class FATHandler
         // get a raw FileEntry
         FileEntry newEntry = FileEntry.getEntry(
                 fileName, fileClusterChain.get(0), data.length, path.getDirectoryContent()
-                , isRead, isHidden, isdirectory, lastModified);
+                , isReadOnly, isHidden, isdirectory, lastModified);
         byte[] rawFileEntry = newEntry.getRawFileEntry();
 
 
@@ -227,7 +262,6 @@ public class FATHandler
 
         // Write file in
         return writeClusters(fileClusterChain, data);
-
     }
 
     private void testUnitReady()
