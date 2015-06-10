@@ -329,7 +329,7 @@ public class FATHandler
     }
 
     /*
-       Resize a clusterchain. Returns the new last cluster
+       Resize a clusterchain. Returns the new last cluster or 0 if it was not possible to resize
      */
     private long resizeClusterChain(long lastCluster)
     {
@@ -364,7 +364,8 @@ public class FATHandler
                     dataPrevLBA[prevIndexes[1]] = lastClusterRaw[2];
                     dataPrevLBA[prevIndexes[2]] = lastClusterRaw[1];
                     dataPrevLBA[prevIndexes[3]] = lastClusterRaw[0];
-                    writeBytes(lbaFATLastCluster, dataPrevLBA);
+                    if(!writeBytes(lbaFATLastCluster, dataPrevLBA))
+                        return 0;
 
                     // Current last cluster FAT entry points to NUL 0xfff...
                     lastClusterRaw = UnsignedUtil.convertULong2Bytes(0xfffffff);
@@ -372,7 +373,8 @@ public class FATHandler
                     data[indexes[1]] = lastClusterRaw[2];
                     data[indexes[2]] = lastClusterRaw[1];
                     data[indexes[3]] = lastClusterRaw[0];
-                    writeBytes(indexFat, data);
+                    if(!writeBytes(indexFat, data))
+                        return 0;
 
                     return clusterEntry;
                 }
@@ -383,7 +385,7 @@ public class FATHandler
                 return 0; // 0 is not a valid cluster
             data = readBytes(indexFat, 1);
         }
-        // TODO: Resize clusterchain
+
         return 0;
     }
 
