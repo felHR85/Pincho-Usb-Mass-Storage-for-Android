@@ -192,9 +192,12 @@ public class FATHandler
         // There is no space for a new entry. resize the directory.
         if(path.getFreeEntries() < fileEntriesRequired)
         {
-            Log.i("DEBUG", "RESIZE DIR");
             long lastCluster = clusterChain.get(clusterChain.size()-1);
-            // TODO: Resize clusterchain method needed
+            long newLastCluster = resizeClusterChain(lastCluster);
+            if(newLastCluster != 0)
+                clusterChain.add(newLastCluster);
+            else
+                return false;
         }
 
         // get dir fileEntries and obtain a valid cluster chain for the new file
