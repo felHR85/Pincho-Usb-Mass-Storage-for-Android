@@ -565,9 +565,7 @@ public class FATHandler
             }else if(bufferEntry[0] == 0x00) // Free entries batch started. Calculate free entries and break
             {
                 int freeBytes = data.length - index1;
-                freeEntries = freeBytes / 32 + 1;
-                if(freeEntries % 32 != 0)
-                    freeEntries += 1;
+                freeEntries = freeBytes / 32;
                 break;
             }
             i++;
