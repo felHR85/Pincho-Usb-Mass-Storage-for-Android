@@ -101,6 +101,11 @@ public class VirtualFileSystem
         return fatHandler.readFile(fileName);
     }
 
+    public boolean deleteFile(String fileName)
+    {
+        return fatHandler.deleteFile(fileName);
+    }
+
     public boolean unMount()
     {
         return fatHandler.unMount();
