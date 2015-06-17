@@ -264,6 +264,34 @@ public class FATHandler
         return writeClusters(fileClusterChain, data);
     }
 
+    public boolean deleteFile(String fileName)
+    {
+        Iterator<FileEntry> e = path.getDirectoryContent().iterator();
+        int i = 0;
+        while(e.hasNext())
+        {
+            FileEntry entry = e.next();
+            String name;
+            if(!entry.getLongName().equals(""))
+                name = entry.getLongName();
+            else
+                name = entry.getShortName();
+            if(name.equalsIgnoreCase(fileName))
+            {
+                long firstCluster = path.getCurrentDirectory().getFirstCluster();
+                List<Long> clusterChain = getClusterChain(firstCluster);
+                byte[] data = readClusters(clusterChain);
+                boolean result = setEntryToDelete(data, i, entry.getLongName());
+                //TODO: put 0xE5 in first byte of FileEntry
+                //TODO: delete the linked list on FAT
+
+                return true;
+            }
+            i++;
+        }
+        return false;
+    }
+
     private void testUnitReady()
     {
         comm.testUnitReady();
@@ -573,6 +601,46 @@ public class FATHandler
         }
         path.setFreeEntries(freeEntries);
         return entries;
+    }
+
+    private boolean setEntryToDelete(byte[] data, int indexEntry, String longName)
+    {
+        int counterEntries = 0;
+        int lfnEntries;
+        if(!longName.equals(""))
+        {
+            lfnEntries = longName.length() / 11;
+            if (longName.length() % 11 != 0)
+                lfnEntries += 1;
+        }else
+        {
+            lfnEntries = 0;
+        }
+
+        int i = 0;
+        while(i < data.length-1)
+        {
+            if(counterEntries == indexEntry) // given entry has been found
+            {
+                data[i * 32] = (byte) 0xe5; // Mark entry as delete
+                for(int j=1;j<=lfnEntries;j++) // Mark all lfn entries as deleted
+                {
+                    int k = i * 32;
+                    data[k - (j * 32)] = (byte) 0xe5;
+                    return true;
+                }
+            }
+
+            byte firstByte = data[i * 32];
+            byte attr = data[i * 32 + 11];
+            if(firstByte != 0x00 && firstByte != (byte) 0xe5
+                    && attr != 0x0f && attr != 0x1f && attr != 0x2f && attr != 0x3f) // FileEntry
+            {
+                counterEntries ++;
+            }
+            i++;
+        }
+        return false;
     }
 
     private String parseLFN(byte[] lfnData)
