@@ -281,11 +281,13 @@ public class FATHandler
                 long firstCluster = path.getCurrentDirectory().getFirstCluster();
                 List<Long> clusterChain = getClusterChain(firstCluster);
                 byte[] data = readClusters(clusterChain);
-                boolean result = setEntryToDelete(data, i, entry.getLongName());
-                //TODO: put 0xE5 in first byte of FileEntry
-                //TODO: delete the linked list on FAT
+                boolean result = setEntryToErased(data, i, entry.getLongName());
+                if(result)
+                    writeClusters(clusterChain, data);
+                else
+                    return false;
 
-                return true;
+                return deleteClusterChain(clusterChain);
             }
             i++;
         }
@@ -454,6 +456,29 @@ public class FATHandler
         return 0;
     }
 
+    private boolean deleteClusterChain(List<Long> clusterChain)
+    {
+        Iterator<Long> e = clusterChain.iterator();
+        while(e.hasNext())
+        {
+            long cluster = e.next();
+            long lbaCluster = getEntryLBA(cluster);
+            int sectorIndex = getEntrySectorIndex(cluster); // 0-127
+            int realIndexes[] = getRealIndexes(sectorIndex);
+
+            byte[] data = readBytes(lbaCluster, 1);
+
+            data[realIndexes[0]] = 0x00;
+            data[realIndexes[1]] = 0x00;
+            data[realIndexes[2]] = 0x00;
+            data[realIndexes[3]] = 0x00;
+
+            if(!writeBytes(lbaCluster, data))
+                return false;
+        }
+        return true;
+    }
+
 
     private boolean writeClusters(List<Long> clusters, byte[] data)
     {
@@ -603,7 +628,7 @@ public class FATHandler
         return entries;
     }
 
-    private boolean setEntryToDelete(byte[] data, int indexEntry, String longName)
+    private boolean setEntryToErased(byte[] data, int indexEntry, String longName)
     {
         int counterEntries = 0;
         int lfnEntries;
