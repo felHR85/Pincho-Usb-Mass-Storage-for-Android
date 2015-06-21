@@ -224,11 +224,13 @@ public class FATHandler
         if(fileName.length() % 11 != 0)
             fileEntriesRequired += 1;
 
-        // There is no space for a new entry. resize the directory.
+        // There is no space for a new entry. resize the folder.
         if(path.getFreeEntries() < fileEntriesRequired)
         {
             long lastCluster = clusterChain.get(clusterChain.size()-1);
             long newLastCluster = resizeClusterChain(lastCluster);
+            int freeEntriesNewCluster = (int) (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()) / 32;
+            path.setFreeEntries(freeEntriesNewCluster + path.getFreeEntries());
             if(newLastCluster != 0)
                 clusterChain.add(newLastCluster);
             else
@@ -254,11 +256,13 @@ public class FATHandler
 
         // Write fileEntry in dir clusters
         int index = getFirstFileEntryIndex(dirData);
-        Log.i("RAW_FILE_ENTRY", HexUtil.hexToString(rawFileEntry));
         System.arraycopy(rawFileEntry, 0, dirData, index, rawFileEntry.length);
 
         // Write file entry
         writeClusters(clusterChain, dirData);
+
+        // update free entries
+        path.setFreeEntries(path.getFreeEntries() - fileEntriesRequired);
 
         // Write file in
         return writeClusters(fileClusterChain, data);
@@ -278,8 +282,14 @@ public class FATHandler
                 name = entry.getShortName();
             if(name.equalsIgnoreCase(fileName))
             {
-                long firstCluster = path.getCurrentDirectory().getFirstCluster();
+                long firstCluster;
+                if(!path.isRoot())
+                    firstCluster = path.getCurrentDirectory().getFirstCluster();
+                else
+                    firstCluster = 2;
+
                 List<Long> clusterChain = getClusterChain(firstCluster);
+                // if no elements in clusterchain get out
                 byte[] data = readClusters(clusterChain);
                 boolean result = setEntryToErased(data, i, entry.getLongName());
                 if(result)
@@ -635,7 +645,7 @@ public class FATHandler
         if(!longName.equals(""))
         {
             lfnEntries = longName.length() / 11;
-            if (longName.length() % 11 != 0)
+            if(longName.length() % 11 != 0)
                 lfnEntries += 1;
         }else
         {
@@ -647,13 +657,16 @@ public class FATHandler
         {
             if(counterEntries == indexEntry) // given entry has been found
             {
+                byte[] test = new byte[32];
+                System.arraycopy(data, i * 32, test, 0, 32);
+                Log.i("FAT_HANDLER", HexUtil.hexToString(test));
                 data[i * 32] = (byte) 0xe5; // Mark entry as delete
                 for(int j=1;j<=lfnEntries;j++) // Mark all lfn entries as deleted
                 {
                     int k = i * 32;
                     data[k - (j * 32)] = (byte) 0xe5;
-                    return true;
                 }
+                return true;
             }
 
             byte firstByte = data[i * 32];
