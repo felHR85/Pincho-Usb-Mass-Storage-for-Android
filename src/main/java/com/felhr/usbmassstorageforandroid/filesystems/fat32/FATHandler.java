@@ -264,7 +264,7 @@ public class FATHandler
         // update free entries
         path.setFreeEntries(path.getFreeEntries() - fileEntriesRequired);
 
-        // Write file in
+        // Write file
         return writeClusters(fileClusterChain, data);
     }
 
@@ -288,16 +288,17 @@ public class FATHandler
                 else
                     firstCluster = 2;
 
-                List<Long> clusterChain = getClusterChain(firstCluster);
+                List<Long> clusterChainFolder = getClusterChain(firstCluster);
+                List<Long> clusterChainFile = getClusterChain(entry.getFirstCluster());
                 // if no elements in clusterchain get out
-                byte[] data = readClusters(clusterChain);
+                byte[] data = readClusters(clusterChainFolder);
                 boolean result = setEntryToErased(data, i, entry.getLongName());
                 if(result)
-                    writeClusters(clusterChain, data);
+                    writeClusters(clusterChainFolder, data);
                 else
                     return false;
 
-                return deleteClusterChain(clusterChain);
+                return deleteClusterChain(clusterChainFile);
             }
             i++;
         }
@@ -655,26 +656,24 @@ public class FATHandler
         int i = 0;
         while(i < data.length-1)
         {
-            if(counterEntries == indexEntry) // given entry has been found
-            {
-                byte[] test = new byte[32];
-                System.arraycopy(data, i * 32, test, 0, 32);
-                Log.i("FAT_HANDLER", HexUtil.hexToString(test));
-                data[i * 32] = (byte) 0xe5; // Mark entry as delete
-                for(int j=1;j<=lfnEntries;j++) // Mark all lfn entries as deleted
-                {
-                    int k = i * 32;
-                    data[k - (j * 32)] = (byte) 0xe5;
-                }
-                return true;
-            }
-
             byte firstByte = data[i * 32];
             byte attr = data[i * 32 + 11];
             if(firstByte != 0x00 && firstByte != (byte) 0xe5
-                    && attr != 0x0f && attr != 0x1f && attr != 0x2f && attr != 0x3f) // FileEntry
+                    && attr != 0x0f && attr != 0x1f && attr != 0x2f && attr != 0x3f)
             {
-                counterEntries ++;
+                if(counterEntries == indexEntry) // given entry has been found
+                {
+                    data[i * 32] = (byte) 0xe5; // Mark entry as delete
+                    for (int j = 1; j <= lfnEntries; j++) // Mark all lfn entries as deleted
+                    {
+                        int k = i * 32;
+                        data[k - (j * 32)] = (byte) 0xe5;
+                    }
+                    return true;
+                }else
+                {
+                    counterEntries++;
+                }
             }
             i++;
         }
