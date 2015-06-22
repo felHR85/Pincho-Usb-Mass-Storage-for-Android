@@ -81,6 +81,24 @@ public class Path
         return directoryContent;
     }
 
+    public void addFileEntry(FileEntry newEntry)
+    {
+        directoryContent.add(newEntry);
+    }
+
+    public boolean deleteFileEntry(int index)
+    {
+        try
+        {
+            directoryContent.remove(index);
+            return true;
+        }catch(IndexOutOfBoundsException e)
+        {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public void clearDirectoryContent()
     {
         directoryContent.clear();

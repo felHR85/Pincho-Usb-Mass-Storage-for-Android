@@ -265,7 +265,12 @@ public class FATHandler
         path.setFreeEntries(path.getFreeEntries() - fileEntriesRequired);
 
         // Write file
-        return writeClusters(fileClusterChain, data);
+        boolean result = writeClusters(fileClusterChain, data);
+        if(result)
+        {
+            path.addFileEntry(newEntry);
+        }
+        return result;
     }
 
     public boolean deleteFile(String fileName)
@@ -297,6 +302,9 @@ public class FATHandler
                     writeClusters(clusterChainFolder, data);
                 else
                     return false;
+
+                // Delete the FileEntry object
+                path.deleteFileEntry(i);
 
                 return deleteClusterChain(clusterChainFile);
             }
