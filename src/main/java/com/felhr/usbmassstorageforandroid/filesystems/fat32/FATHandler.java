@@ -221,7 +221,7 @@ public class FATHandler
         Write a file in the current Path
 
      */
-    public boolean writeNewFile(String fileName, byte[] data, boolean isReadOnly, boolean isHidden, boolean isdirectory, long lastModified)
+    public boolean writeNewFile(String fileName, byte[] data, boolean isReadOnly, boolean isHidden, boolean isDirectory, long lastModified)
     {
         // Get clusterchain of the current folder
         List<Long> clusterChain;
@@ -256,7 +256,7 @@ public class FATHandler
         // get dir fileEntries and obtain a valid cluster chain for the new file
         byte[] dirData = readClusters(clusterChain);
         List<Long> fileClusterChain = new ArrayList<Long>();
-        if(!isdirectory)
+        if(!isDirectory)
         {
             int clusters = (int) (data.length / (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()));
             if(data.length % (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()) != 0)
@@ -274,14 +274,14 @@ public class FATHandler
 
         // get a raw FileEntry
         long size;
-        if(!isdirectory)
+        if(!isDirectory)
             size = data.length;
         else
             size = 0;
 
         FileEntry newEntry = FileEntry.getEntry(
                 fileName, fileClusterChain.get(0), size, path.getDirectoryContent()
-                , isReadOnly, isHidden, isdirectory, lastModified);
+                , isReadOnly, isHidden, isDirectory, lastModified);
         byte[] rawFileEntry = newEntry.getRawFileEntry();
 
 
@@ -296,7 +296,7 @@ public class FATHandler
         path.setFreeEntries(path.getFreeEntries() - fileEntriesRequired);
 
         // Write file only if file entry is not a directory
-        if(!isdirectory)
+        if(!isDirectory)
         {
             boolean result = writeClusters(fileClusterChain, data);
             if(result)
