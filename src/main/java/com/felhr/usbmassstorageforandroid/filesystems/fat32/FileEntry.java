@@ -216,10 +216,10 @@ public class FileEntry
         byte lsb = (byte) (value & 0xff);
         byte msb = (byte) (value >> 8);
 
-        System.arraycopy(new byte[]{msb, lsb}, 0, rawFileEntry, index, 2);
+        System.arraycopy(new byte[]{lsb, msb}, 0, rawFileEntry, index, 2);
         index += 2;
         value = 0;
-        int years = dateCal.get(Calendar.YEAR);
+        int years = dateCal.get(Calendar.YEAR) - 1980;
         int month = dateCal.get(Calendar.MONTH) + 1;
         int day = dateCal.get(Calendar.DAY_OF_MONTH);
 
@@ -230,7 +230,7 @@ public class FileEntry
         lsb = (byte) (value & 0xff);
         msb = (byte) (value >> 8);
 
-        System.arraycopy(new byte[]{msb, lsb}, 0, rawFileEntry, index, 2);
+        System.arraycopy(new byte[]{lsb, msb}, 0, rawFileEntry, index, 2);
         index += 2;
         value = 0;
 
@@ -238,7 +238,7 @@ public class FileEntry
           get Raw Last accesed date
          */
         dateCal.setTime(lastAccessedDate);
-        years = dateCal.get(Calendar.YEAR);
+        years = dateCal.get(Calendar.YEAR) - 1980;
         month = dateCal.get(Calendar.MONTH) + 1;
         day = dateCal.get(Calendar.DAY_OF_MONTH);
 
@@ -249,7 +249,7 @@ public class FileEntry
         lsb = (byte) (value & 0xff);
         msb = (byte) (value >> 8);
 
-        System.arraycopy(new byte[]{msb, lsb}, 0, rawFileEntry, index, 2);
+        System.arraycopy(new byte[]{lsb, msb}, 0, rawFileEntry, index, 2);
         index += 2;
         value = 0;
 
@@ -277,21 +277,21 @@ public class FileEntry
         lsb = (byte) (value & 0xff);
         msb = (byte) (value >> 8);
 
-        System.arraycopy(new byte[]{msb, lsb}, 0, rawFileEntry, index, 2);
+        System.arraycopy(new byte[]{lsb, msb}, 0, rawFileEntry, index, 2);
         index += 2;
         value = 0;
-        years = dateCal.get(Calendar.YEAR);
+        years = dateCal.get(Calendar.YEAR) - 1980;
         month = dateCal.get(Calendar.MONTH) + 1;
         day = dateCal.get(Calendar.DAY_OF_MONTH);
 
         value += (years << 9);
-        value += (month << 5) & 0x1e0;
+        value += (month << 5)  & 0x1e0;
         value += (day & 0x1f);
 
         lsb = (byte) (value & 0xff);
         msb = (byte) (value >> 8);
 
-        System.arraycopy(new byte[]{msb, lsb}, 0, rawFileEntry, index, 2);
+        System.arraycopy(new byte[]{lsb, msb}, 0, rawFileEntry, index, 2);
         index += 2;
 
         /*
