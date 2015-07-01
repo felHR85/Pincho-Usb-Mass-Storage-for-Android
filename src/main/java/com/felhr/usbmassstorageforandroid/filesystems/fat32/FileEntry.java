@@ -2,9 +2,6 @@ package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 
 
 
-import android.util.Log;
-
-import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
 import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
 import java.util.Arrays;
@@ -205,7 +202,7 @@ public class FileEntry
         Calendar dateCal = Calendar.getInstance();
         dateCal.setTime(creationDate);
         int value = 0;
-        int hours = dateCal.get(Calendar.HOUR);
+        int hours = dateCal.get(Calendar.HOUR_OF_DAY);
         int minutes = dateCal.get(Calendar.MINUTE);
         int seconds = dateCal.get(Calendar.SECOND) / 2;
 
@@ -266,7 +263,7 @@ public class FileEntry
           get last modified date
          */
         dateCal.setTime(lastModifiedDate);
-        hours = dateCal.get(Calendar.HOUR);
+        hours = dateCal.get(Calendar.HOUR_OF_DAY);
         minutes = dateCal.get(Calendar.MINUTE);
         seconds = dateCal.get(Calendar.SECOND) / 2;
 
@@ -331,7 +328,6 @@ public class FileEntry
         for(int k=0;k<=numberOfLfn-1;k++)
         {
             String sub = splitStrings[numberOfLfn - k - 1];
-            Log.i("DEBUG","SUB_STRING: " +  sub);
             while(n <= 31)
             {
                 if(n == 0) // Ordinal Field
@@ -389,7 +385,6 @@ public class FileEntry
             n = 0;
             endOfString = false;
         }
-        Log.i("DEBUG", "LFN bytes:" + HexUtil.hexToString(lfnBuffer));
         return lfnBuffer;
     }
 
