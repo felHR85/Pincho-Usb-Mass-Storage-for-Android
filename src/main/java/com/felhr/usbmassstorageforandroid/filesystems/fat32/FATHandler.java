@@ -172,32 +172,48 @@ public class FATHandler
 
     public boolean writeNewFile(java.io.File file)
     {
-        byte[] fileData = new byte[(int) file.length()];
-        try
-        {
-            DataInputStream dis = new DataInputStream(new FileInputStream(file));
-            try
-            {
-                dis.readFully(fileData);
-            }catch(IOException e)
-            {
-                e.printStackTrace();
-                return false;
-            }
-
-        }catch(FileNotFoundException e)
-        {
-            e.printStackTrace();
-            return false;
-        }
-
         String fileName = file.getName();
         boolean isReadOnly = !file.canWrite();
         boolean isHidden = file.isHidden();
         boolean isDirectory = file.isDirectory();
         long lastModified = file.lastModified();
 
-        return writeNewFile(fileName, fileData, isReadOnly, isHidden, isDirectory, lastModified);
+        if(!file.isDirectory())
+        {
+            byte[] fileData = new byte[(int) file.length()];
+            try
+            {
+                DataInputStream dis = new DataInputStream(new FileInputStream(file));
+                try
+                {
+                    dis.readFully(fileData);
+                } catch (IOException e)
+                {
+                    e.printStackTrace();
+                    return false;
+                }
+
+            }catch (FileNotFoundException e)
+            {
+                e.printStackTrace();
+                return false;
+            }
+
+            return writeNewFile(fileName, fileData, isReadOnly, isHidden, isDirectory, lastModified);
+        }else
+        {
+            boolean result = writeNewFile(fileName, null, isReadOnly, isHidden, isDirectory, lastModified);
+            if(!result)
+                return false;
+
+            java.io.File[] files = file.listFiles();
+            for(int i=0;i<=files.length-1;i++)
+            {
+                java.io.File subFile = files[i];
+                writeNewFile(subFile);
+            }
+        }
+        return true;
     }
 
 
@@ -240,16 +256,31 @@ public class FATHandler
         // get dir fileEntries and obtain a valid cluster chain for the new file
         byte[] dirData = readClusters(clusterChain);
         List<Long> fileClusterChain = new ArrayList<Long>();
-        int clusters = (int) (data.length / (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()));
-        if(data.length % (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()) != 0)
-            clusters += 1;
-        fileClusterChain = setClusterChain(clusters);
-        if(fileClusterChain == null) // It was no possible to get a clusterchain
-            return false;
+        if(!isdirectory)
+        {
+            int clusters = (int) (data.length / (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()));
+            if(data.length % (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()) != 0)
+                clusters += 1;
+            fileClusterChain = setClusterChain(clusters);
+            if(fileClusterChain == null) // It was no possible to get a clusterchain
+                return false;
+        }else
+        {
+            // It is a dir, it just needs one cluster at least at this moment
+            fileClusterChain = setClusterChain(1);
+            if(fileClusterChain == null) // It was no possible to get a clusterchain
+                return false;
+        }
 
         // get a raw FileEntry
+        long size;
+        if(!isdirectory)
+            size = data.length;
+        else
+            size = 0;
+
         FileEntry newEntry = FileEntry.getEntry(
-                fileName, fileClusterChain.get(0), data.length, path.getDirectoryContent()
+                fileName, fileClusterChain.get(0), size, path.getDirectoryContent()
                 , isReadOnly, isHidden, isdirectory, lastModified);
         byte[] rawFileEntry = newEntry.getRawFileEntry();
 
@@ -264,13 +295,19 @@ public class FATHandler
         // update free entries
         path.setFreeEntries(path.getFreeEntries() - fileEntriesRequired);
 
-        // Write file
-        boolean result = writeClusters(fileClusterChain, data);
-        if(result)
+        // Write file only if file entry is not a directory
+        if(!isdirectory)
         {
-            path.addFileEntry(newEntry);
+            boolean result = writeClusters(fileClusterChain, data);
+            if(result)
+            {
+                path.addFileEntry(newEntry);
+            }
+            return result;
         }
-        return result;
+
+        path.addFileEntry(newEntry);
+        return true;
     }
 
     public boolean deleteFile(String fileName)

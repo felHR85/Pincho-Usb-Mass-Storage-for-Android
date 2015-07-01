@@ -47,7 +47,7 @@ public class VirtualFileSystem
         return files;
     }
 
-    public List<VFSFile> listAll()
+    public List<VFSFile> listFiles()
     {
         List<FileEntry> entries = fatHandler.list();
         List<VFSFile> files = new ArrayList<VFSFile>();
