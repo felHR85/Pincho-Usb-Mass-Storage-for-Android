@@ -45,7 +45,6 @@ public class FATHandler
     public FATHandler(UsbDevice mDevice, UsbDeviceConnection mConnection)
     {
         this.comm = new SCSICommunicator(mDevice, mConnection);
-        this.comm.openSCSICommunicator(scsiInterface);
         this.monitor = new Object();
         this.path = new Path();
         this.waiting = new AtomicBoolean(true);
@@ -53,6 +52,11 @@ public class FATHandler
 
     public boolean mount(int partitionIndex)
     {
+        boolean isOpen = comm.openSCSICommunicator(scsiInterface);
+
+        if(!isOpen)
+            return false;
+
         testUnitReady();
 
         if(currentStatus)

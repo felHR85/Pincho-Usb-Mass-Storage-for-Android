@@ -57,7 +57,6 @@ public class VirtualFileSystem
             FileEntry entry = e.next();
             VFSFile file = VFSFile.getVFSFile(entry);
             files.add(file);
-
         }
         return files;
     }
