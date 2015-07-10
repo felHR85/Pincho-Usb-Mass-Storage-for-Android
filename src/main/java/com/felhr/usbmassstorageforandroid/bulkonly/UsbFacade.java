@@ -92,6 +92,12 @@ public class UsbFacade
                         dataOutThread.start();
                         dataInThread = new DataInThread();
                         dataInThread.start();
+
+                        while(outHandler == null)
+                        {
+                            //Busy waiting to avoid outHandler being null :(
+                        }
+
                         return true;
                     }else
                     {
