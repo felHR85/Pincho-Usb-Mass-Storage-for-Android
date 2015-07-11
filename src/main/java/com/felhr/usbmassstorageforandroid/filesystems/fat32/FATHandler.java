@@ -132,12 +132,14 @@ public class FATHandler
                     long firstCluster = backEntry.getFirstCluster();
                     List<Long> clusterChain = getClusterChain(firstCluster);
                     byte[] data = readClusters(clusterChain);
+                    path.clearDirectoryContent();
                     path.setDirectoryContent(getFileEntries(data));
                     return true;
                 }else
                 {
                     List<Long> clustersRoot = getClusterChain(2);
                     byte[] data = readClusters(clustersRoot);
+                    path.clearDirectoryContent();
                     path.setDirectoryContent(getFileEntries(data));
                     return true;
                 }

@@ -68,7 +68,7 @@ public class Path
      */
     public void setDirectoryContent(List<FileEntry> entries)
     {
-        directoryContent = entries;
+        directoryContent.addAll(entries);
     }
 
     public void setFreeEntries(int freeEntries)
