@@ -100,6 +100,11 @@ public class VirtualFileSystem
         return fatHandler.readFile(fileName);
     }
 
+    public byte[] readFile(VFSFile file)
+    {
+        return fatHandler.readFile(file.getFileName());
+    }
+
     public boolean deleteFile(String fileName)
     {
         return fatHandler.deleteFile(fileName);
