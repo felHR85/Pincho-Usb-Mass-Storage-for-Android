@@ -85,6 +85,11 @@ public class VirtualFileSystem
         return fatHandler.changeDir(dirName);
     }
 
+    public boolean changeDir(VFSFile file)
+    {
+        return fatHandler.changeDir(file.getFileName());
+    }
+
     public boolean changeDirBack()
     {
         return fatHandler.changeDirBack();
