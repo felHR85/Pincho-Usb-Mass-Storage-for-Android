@@ -209,6 +209,7 @@ public class FATHandler
         }else
         {
             boolean result = writeNewFile(fileName, null, isReadOnly, isHidden, isDirectory, lastModified);
+            changeDir(fileName);
 
             if(!result)
                 return false;
@@ -219,6 +220,7 @@ public class FATHandler
                 java.io.File subFile = files[i];
                 writeNewFile(subFile);
             }
+            changeDirBack();
         }
         return true;
     }
@@ -311,7 +313,7 @@ public class FATHandler
                 path.addFileEntry(newEntry);
             }
             return result;
-        }else if(isDirectory && !fileName.equals(".") && !fileName.equals(".."))
+        }else if(isDirectory)
         {
             // Add . and .. entries
             FileEntry dotEntry = FileEntry.getEntry(
