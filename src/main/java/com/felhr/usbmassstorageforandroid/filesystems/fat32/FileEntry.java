@@ -423,10 +423,15 @@ public class FileEntry
 
     private byte createCheckSum()
     {
-        String completeShortName = shortName + fileExtension;
+        String completeShortName;
+        if(fileExtension.length() != 0)
+            completeShortName = shortName + fileExtension;
+        else
+            completeShortName = shortName;
+
         int bit7;
         int checksum = 0;
-        for(int character=0;character<11;character++)
+        for(int character=0;character < completeShortName.length();character++)
         {
             if((1 & checksum) != 0)
                 bit7 = 0x80;
