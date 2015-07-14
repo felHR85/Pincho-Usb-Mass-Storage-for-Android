@@ -112,10 +112,18 @@ public class FileEntry
             System, volume and archive attributes not added yet because not accesible from Android API
          */
         FileEntry entry = new FileEntry();
-        String[] fileAndExtension = get8dot3NameExtension(name, files);
-        entry.shortName = fileAndExtension[0];
-        entry.fileExtension = fileAndExtension[1];
-        entry.longName = name;
+        if(files != null)
+        {
+            String[] fileAndExtension = get8dot3NameExtension(name, files);
+            entry.shortName = fileAndExtension[0];
+            entry.fileExtension = fileAndExtension[1];
+            entry.longName = name;
+        }else // dot and dot-dot entries
+        {
+            entry.shortName = name;
+            entry.fileExtension = "";
+            entry.longName = "";
+        }
         entry.firstCluster = firstCluster;
         entry.size = size;
         entry.attr = new Attributes();

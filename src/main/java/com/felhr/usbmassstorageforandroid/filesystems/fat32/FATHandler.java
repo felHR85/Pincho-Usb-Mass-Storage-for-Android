@@ -209,6 +209,7 @@ public class FATHandler
         }else
         {
             boolean result = writeNewFile(fileName, null, isReadOnly, isHidden, isDirectory, lastModified);
+
             if(!result)
                 return false;
 
@@ -310,6 +311,25 @@ public class FATHandler
                 path.addFileEntry(newEntry);
             }
             return result;
+        }else if(isDirectory && !fileName.equals(".") && !fileName.equals(".."))
+        {
+            // Add . and .. entries
+            FileEntry dotEntry = FileEntry.getEntry(
+                    ".", fileClusterChain.get(0), 0, null
+                    , false, false, true, lastModified);
+
+            FileEntry dotDotEntry = FileEntry.getEntry(
+                    "..", clusterChain.get(0), 0, null
+                    , false, false, true, lastModified);
+
+            byte[] dotEntryRaw = dotEntry.getRawFileEntry();
+            byte[] dotDotEntryRaw = dotDotEntry.getRawFileEntry();
+
+            byte[] dotEntriesRaw = new byte[64];
+            System.arraycopy(dotEntryRaw, 0, dotEntriesRaw, 0, 32);
+            System.arraycopy(dotDotEntryRaw, 0, dotEntriesRaw, 32, 32);
+
+            writeClusters(fileClusterChain, dotEntriesRaw);
         }
 
         path.addFileEntry(newEntry);
