@@ -267,9 +267,16 @@ public class FATHandler
         List<Long> fileClusterChain = new ArrayList<Long>();
         if(!isDirectory)
         {
-            int clusters = (int) (data.length / (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()));
-            if(data.length % (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()) != 0)
-                clusters += 1;
+            int clusters;
+            if(data.length != 0)
+            {
+                clusters = (int) (data.length / (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()));
+                if(data.length % (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()) != 0)
+                    clusters += 1;
+            }else
+            {
+                clusters = 1;
+            }
             fileClusterChain = setClusterChain(clusters);
             if(fileClusterChain == null) // It was no possible to get a clusterchain
                 return false;
@@ -304,8 +311,8 @@ public class FATHandler
         // update free entries
         path.setFreeEntries(path.getFreeEntries() - fileEntriesRequired);
 
-        // Write file only if file entry is not a directory
-        if(!isDirectory)
+        // Write file only if file entry is not a directory and the size is not 0
+        if(!isDirectory && size != 0)
         {
             boolean result = writeClusters(fileClusterChain, data);
             if(result)
