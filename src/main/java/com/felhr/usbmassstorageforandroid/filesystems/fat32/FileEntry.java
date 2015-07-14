@@ -195,7 +195,11 @@ public class FileEntry
         index = rawLongName.length;
         System.arraycopy(shortName.getBytes(), 0, rawFileEntry, index, 8);
         index += 8;
-        System.arraycopy(fileExtension.getBytes(), 0, rawFileEntry, index, 3);
+        if(fileExtension.length() == 3)
+
+            System.arraycopy(fileExtension.getBytes(), 0, rawFileEntry, index, 3);
+        else
+            System.arraycopy(new byte[]{0x20, 0x20, 0x20}, 0, rawFileEntry, index, 3);
         index += 3;
         System.arraycopy(new byte[]{attr.getAttrByte()}, 0, rawFileEntry, index, 1);
         index += 1;
