@@ -567,14 +567,14 @@ public class FileEntry
             String[] strTruncated = strAscii.split("\\.");
             if(strTruncated.length > 1)
             {
-                fileAndExtension[0] = strTruncated[0];
+                fileAndExtension[0] = strTruncated[0].toUpperCase();
                 String extension = strTruncated[1];
                 if(extension.length() > 3)
                     extension = extension.substring(0, 3);
                 fileAndExtension[1] = extension;
             }else
             {
-                fileAndExtension[0] = strTruncated[0];
+                fileAndExtension[0] = strTruncated[0].toUpperCase();
                 fileAndExtension[1] = "";
             }
             return fileAndExtension;
