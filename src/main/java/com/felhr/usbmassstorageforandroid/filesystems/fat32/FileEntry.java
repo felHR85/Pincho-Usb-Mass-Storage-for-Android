@@ -193,7 +193,15 @@ public class FileEntry
 
         System.arraycopy(rawLongName, 0, rawFileEntry, index, rawLongName.length);
         index = rawLongName.length;
-        System.arraycopy(shortName.getBytes(), 0, rawFileEntry, index, 8);
+        if(shortName.length() == 8)
+            System.arraycopy(shortName.getBytes(), 0, rawFileEntry, index, 8);
+        else
+        {
+            byte[] shortNameRawExpanded = new byte[]{0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20};
+            byte[] shortNameRaw = shortName.getBytes();
+            System.arraycopy(shortNameRaw, 0, shortNameRawExpanded, 0, shortNameRaw.length);
+            System.arraycopy(shortNameRawExpanded, 0, rawFileEntry, index, 8);
+        }
         index += 8;
         if(fileExtension.length() == 3)
 
