@@ -185,17 +185,17 @@ public class FileEntry
         return 0;
     }
 
-    public byte[] getRawFileEntry()
-    {
+    public byte[] getRawFileEntry() {
         byte[] rawLongName = getRawLongName();
         byte[] rawFileEntry = new byte[rawLongName.length + 32];
-        int index =0;
+        int index = 0;
 
         System.arraycopy(rawLongName, 0, rawFileEntry, index, rawLongName.length);
         index = rawLongName.length;
-        if(shortName.length() == 8)
+        if (shortName.length() == 8)
+        {
             System.arraycopy(shortName.getBytes(), 0, rawFileEntry, index, 8);
-        else
+        }else
         {
             byte[] shortNameRawExpanded = new byte[]{0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20};
             byte[] shortNameRaw = shortName.getBytes();
@@ -203,11 +203,23 @@ public class FileEntry
             System.arraycopy(shortNameRawExpanded, 0, rawFileEntry, index, 8);
         }
         index += 8;
-        if(fileExtension.length() == 3)
 
+        if (fileExtension.length() == 3)
+        {
             System.arraycopy(fileExtension.getBytes(), 0, rawFileEntry, index, 3);
-        else
-            System.arraycopy(new byte[]{0x20, 0x20, 0x20}, 0, rawFileEntry, index, 3);
+        }else
+        {
+            byte[] extensionRawExtended = new byte[]{0x20, 0x20, 0x20};
+            byte[] extensionRaw = fileExtension.getBytes();
+            if(extensionRaw.length != 0)
+            {
+                System.arraycopy(extensionRaw, 0, extensionRawExtended, 0, extensionRaw.length);
+                System.arraycopy(extensionRawExtended, 0, rawFileEntry, index, 3);
+            }else
+            {
+                System.arraycopy(new byte[]{0x20, 0x20, 0x20}, 0, rawFileEntry, index, 3);
+            }
+        }
         index += 3;
         System.arraycopy(new byte[]{attr.getAttrByte()}, 0, rawFileEntry, index, 1);
         index += 1;
@@ -553,8 +565,18 @@ public class FileEntry
             String strNoSpaces =  nameFile.replaceAll("\\s+", "");
             String strAscii = strNoSpaces.replaceAll("[^\\p{ASCII}]", "_");
             String[] strTruncated = strAscii.split("\\.");
-            fileAndExtension[0] = strTruncated[0];
-            fileAndExtension[1] = strTruncated[1];
+            if(strTruncated.length > 1)
+            {
+                fileAndExtension[0] = strTruncated[0];
+                String extension = strTruncated[1];
+                if(extension.length() > 3)
+                    extension = extension.substring(0, 3);
+                fileAndExtension[1] = extension;
+            }else
+            {
+                fileAndExtension[0] = strTruncated[0];
+                fileAndExtension[1] = "";
+            }
             return fileAndExtension;
         }
     }
