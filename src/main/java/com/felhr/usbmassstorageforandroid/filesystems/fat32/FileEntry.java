@@ -469,10 +469,16 @@ public class FileEntry
             if(strStep3[0].length() <= 8) // Not need to create a unique shortFileName
             {
                 truncatedName = strStep3[0].substring(0, strStep3[0].length());
-                if(strStep3[1].length() <= 3)
-                    truncatedExtension = strStep3[1].substring(0, strStep3[1].length());
-                else
-                    truncatedExtension = strStep3[1].substring(0, 3);
+                if(strStep3.length > 1)
+                {
+                    if (strStep3[1].length() <= 3)
+                        truncatedExtension = strStep3[1].substring(0, strStep3[1].length());
+                    else
+                        truncatedExtension = strStep3[1].substring(0, 3);
+                }else // Dir or file without extension
+                {
+                    truncatedExtension = "";
+                }
 
                 truncatedName = truncatedName.replaceAll("[^\\p{ASCII}]", "_");
                 truncatedExtension = truncatedExtension.replaceAll("[^\\p{ASCII}]", "_");
@@ -486,10 +492,16 @@ public class FileEntry
             }else // Create a unique shortFileName
             {
                 truncatedName = strStep3[0].substring(0, 6);
-                if(strStep3[1].length() <= 3)
-                    truncatedExtension = strStep3[1].substring(0, strStep3[1].length());
-                else
-                    truncatedExtension = strStep3[1].substring(0, 3);
+                if(strStep3.length > 1)
+                {
+                    if (strStep3[1].length() <= 3)
+                        truncatedExtension = strStep3[1].substring(0, strStep3[1].length());
+                    else
+                        truncatedExtension = strStep3[1].substring(0, 3);
+                }else
+                {
+                    truncatedExtension = "";
+                }
 
                 truncatedName = truncatedName.replaceAll("[^\\p{ASCII}]", "_");
                 truncatedExtension = truncatedExtension.replaceAll("[^\\p{ASCII}]", "_");
