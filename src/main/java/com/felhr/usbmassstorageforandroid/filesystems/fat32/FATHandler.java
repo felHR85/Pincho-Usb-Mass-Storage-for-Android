@@ -168,9 +168,16 @@ public class FATHandler
             if(name.equalsIgnoreCase(fileName) && !entry.isDirectory())
             {
                 long firstCluster = entry.getFirstCluster();
-                List<Long> clusterChain = getClusterChain(firstCluster);
-                byte[] data = readClusters(clusterChain);
-                return Arrays.copyOf(data, (int) entry.getSize());
+                if(firstCluster != 0) // File size is not 0
+                {
+                    List<Long> clusterChain = getClusterChain(firstCluster);
+                    byte[] data = readClusters(clusterChain);
+                    return Arrays.copyOf(data, (int) entry.getSize());
+                }else
+                {
+                    return new byte[0];
+                }
+
             }
         }
         return null;
