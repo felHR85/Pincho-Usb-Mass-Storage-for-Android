@@ -453,6 +453,16 @@ public class FileEntry
         else
             completeShortName = shortName;
 
+        if(completeShortName.length() < 11)
+        {
+            byte[] spaces = new byte[11 - completeShortName.length()];
+            for(int i=0;i<=spaces.length-1;i++)
+            {
+                spaces[i] = 0x20;
+            }
+            completeShortName += new String(spaces);
+        }
+
         int bit7;
         int checksum = 0;
         for(int character=0;character < completeShortName.length();character++)
@@ -467,7 +477,6 @@ public class FileEntry
             checksum = checksum + (int) completeShortName.charAt(character);
             checksum = checksum & 0xff;
         }
-
         return (byte) checksum;
     }
 
