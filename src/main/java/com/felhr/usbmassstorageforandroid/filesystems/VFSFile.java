@@ -14,7 +14,6 @@ import java.util.Date;
 public class VFSFile
 {
     private String fileName;
-    private String fileExtension;
     private boolean isReadOnly;
     private boolean isHidden;
     private boolean isSystem;
@@ -31,12 +30,11 @@ public class VFSFile
 
     }
 
-    public VFSFile(String fileName, String fileExtension, boolean isReadOnly, boolean isHidden,
+    public VFSFile(String fileName, boolean isReadOnly, boolean isHidden,
                    boolean isSystem, boolean isVolume, boolean isDirectory, boolean isArchive,
                    Date creationDate, Date lastAccessedDate, Date lastModifiedDate, long size)
     {
         this.fileName = fileName;
-        this.fileExtension = fileExtension;
         this.isReadOnly = isReadOnly;
         this.isHidden = isHidden;
         this.isSystem = isSystem;
@@ -53,10 +51,12 @@ public class VFSFile
     {
         VFSFile file = new VFSFile();
         if(!entry.getLongName().equals(""))
+        {
             file.setFileName(entry.getLongName());
-        else
-            file.setFileName(entry.getShortName());
-        file.setFileExtension(entry.getFileExtension());
+        }else
+        {
+            file.setFileName(entry.getShortName() + entry.getFileExtension());
+        }
         file.setIsReadOnly(entry.isReadOnly());
         file.setIsHidden(entry.isHidden());
         file.setIsSystem(entry.isSystem());
@@ -78,16 +78,6 @@ public class VFSFile
     public void setFileName(String fileName)
     {
         this.fileName = fileName;
-    }
-
-    public String getFileExtension()
-    {
-        return fileExtension;
-    }
-
-    public void setFileExtension(String fileExtension)
-    {
-        this.fileExtension = fileExtension;
     }
 
     public boolean isReadOnly()
