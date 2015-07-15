@@ -154,6 +154,9 @@ public class FATHandler
         }
     }
 
+    /*
+        Filename: fileName should be a LFN or a short file name + extension
+     */
     public byte[] readFile(String fileName)
     {
         Iterator<FileEntry> e = path.getDirectoryContent().iterator();
@@ -163,8 +166,11 @@ public class FATHandler
             String name;
             if(!entry.getLongName().equals(""))
                 name = entry.getLongName();
+            else if(!entry.getFileExtension().equals(""))
+                name = entry.getShortName() + "." + entry.getFileExtension();
             else
                 name = entry.getShortName();
+
             if(name.equalsIgnoreCase(fileName) && !entry.isDirectory())
             {
                 long firstCluster = entry.getFirstCluster();
@@ -177,7 +183,6 @@ public class FATHandler
                 {
                     return new byte[0];
                 }
-
             }
         }
         return null;

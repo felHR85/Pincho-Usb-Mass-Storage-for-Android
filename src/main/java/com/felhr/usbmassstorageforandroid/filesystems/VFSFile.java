@@ -1,5 +1,7 @@
 package com.felhr.usbmassstorageforandroid.filesystems;
 
+import android.util.Log;
+
 import com.felhr.usbmassstorageforandroid.filesystems.fat32.FileEntry;
 
 import java.util.Date;
@@ -53,9 +55,13 @@ public class VFSFile
         if(!entry.getLongName().equals(""))
         {
             file.setFileName(entry.getLongName());
+        }else if(!entry.isDirectory() && entry.getLongName().equals("") && !entry.getShortName().equals(".") && !entry.getShortName().equals("..")
+                && !entry.getFileExtension().equals(""))
+        {
+            file.setFileName(entry.getShortName() + "." + entry.getFileExtension());
         }else
         {
-            file.setFileName(entry.getShortName() + entry.getFileExtension());
+            file.setFileName(entry.getShortName());
         }
         file.setIsReadOnly(entry.isReadOnly());
         file.setIsHidden(entry.isHidden());

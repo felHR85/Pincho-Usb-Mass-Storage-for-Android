@@ -2,6 +2,8 @@ package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 
 
 
+import android.widget.ArrayAdapter;
+
 import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
 import java.util.Arrays;
@@ -45,7 +47,7 @@ public class FileEntry
         byte[] buffer = new byte[8];
 
         System.arraycopy(data, 0, buffer, 0, 8);
-        int length = findNullChar(buffer);
+        int length = findNullChar(buffer, 8);
         if(length > 0)
         {
             entry.shortName = new String(buffer, 0, length);
@@ -54,8 +56,20 @@ public class FileEntry
             entry.shortName = new String(buffer);
         }
 
+        Arrays.fill(buffer, (byte) 0x20);
         System.arraycopy(data, 8, buffer, 0, 3);
-        entry.fileExtension = new String(Arrays.copyOf(buffer, 3));
+        length = findNullChar(buffer, 3);
+        if(length > -1)
+        {
+            if(length == 0)
+                entry.fileExtension = "";
+            else
+                entry.fileExtension = new String(buffer, 0, length);
+        }else // No null char
+        {
+            entry.fileExtension = new String(Arrays.copyOf(buffer, 3));
+        }
+        //entry.fileExtension = new String(Arrays.copyOf(buffer, 3));
 
         System.arraycopy(data, 11, buffer, 0, 1);
         entry.attr = new Attributes(buffer[0]);
@@ -173,16 +187,16 @@ public class FileEntry
         return accessDate.getTime();
     }
 
-    private static int findNullChar(byte[] data)
+    private static int findNullChar(byte[] data, int length)
     {
-        for(int i=0;i<=data.length-1;i++)
+        for(int i=0;i<=length-1;i++)
         {
             if(data[i] == (byte) 0x20)
             {
                 return i;
             }
         }
-        return 0;
+        return -1;
     }
 
     public byte[] getRawFileEntry() {
