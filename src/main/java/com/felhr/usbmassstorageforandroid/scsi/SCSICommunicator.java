@@ -2,7 +2,6 @@ package com.felhr.usbmassstorageforandroid.scsi;
 
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
-import android.util.Log;
 
 import com.felhr.usbmassstorageforandroid.bulkonly.BulkOnlyCommunicator;
 import com.felhr.usbmassstorageforandroid.bulkonly.BulkOnlyStatusInterface;

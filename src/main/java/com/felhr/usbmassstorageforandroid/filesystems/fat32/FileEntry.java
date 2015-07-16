@@ -1,9 +1,6 @@
 package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 
 
-
-import android.widget.ArrayAdapter;
-
 import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
 import java.util.Arrays;

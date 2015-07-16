@@ -2,7 +2,6 @@ package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
-import android.util.Log;
 
 import com.felhr.usbmassstorageforandroid.filesystems.MasterBootRecord;
 import com.felhr.usbmassstorageforandroid.filesystems.Partition;
@@ -10,7 +9,6 @@ import com.felhr.usbmassstorageforandroid.scsi.SCSICommunicator;
 import com.felhr.usbmassstorageforandroid.scsi.SCSIInterface;
 import com.felhr.usbmassstorageforandroid.scsi.SCSIRead10Response;
 import com.felhr.usbmassstorageforandroid.scsi.SCSIResponse;
-import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
 import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
 import java.io.DataInputStream;

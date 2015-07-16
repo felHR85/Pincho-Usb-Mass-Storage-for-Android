@@ -1,11 +1,8 @@
 package com.felhr.usbmassstorageforandroid.scsi;
 
-import android.util.Log;
-
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import commandwrappers.CommandBlockWrapper;
 
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 4/1/15.
