@@ -1,5 +1,7 @@
 package com.felhr.usbmassstorageforandroid.scsi;
 
+import android.util.Log;
+
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicBoolean;
 

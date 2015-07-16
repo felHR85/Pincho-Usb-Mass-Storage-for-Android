@@ -8,10 +8,8 @@ import android.hardware.usb.UsbInterface;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 
 import com.felhr.usbmassstorageforandroid.utilities.EndianessUtil;
-import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -31,8 +29,6 @@ public class UsbFacade
 
     private static final int CBW_TRANSPORT = 0;
     private static final int DATA_FROM_HOST = 1;
-    private static final int DATA_TO_HOST = 3;
-    private static final int CBS_TRANSPORT = 4;
 
     private UsbDevice mDevice;
     private UsbDeviceConnection mConnection;
@@ -141,26 +137,13 @@ public class UsbFacade
             return -1;
     }
 
-    public void sendCommand(byte[] cbwBuffer)
+    public void sendCommand(byte[] cbwBuffer, byte[] data)
     {
-        String inquiryBuffer = HexUtil.hexToString(cbwBuffer);
-        Log.i("Buffer state", "CBW: " + inquiryBuffer);
         outHandler.obtainMessage(CBW_TRANSPORT, cbwBuffer).sendToTarget();
-    }
-
-    public void sendData(byte[] data)
-    {
-        outHandler.obtainMessage(DATA_FROM_HOST, data).sendToTarget();
-    }
-
-    public void requestCsw()
-    {
-        //inHandler.obtainMessage(CBS_TRANSPORT).sendToTarget();
-    }
-
-    public void requestData(int dataSize)
-    {
-        //inHandler.obtainMessage(DATA_TO_HOST, dataSize).sendToTarget();
+        if(data != null)
+        {
+            outHandler.obtainMessage(DATA_FROM_HOST, data).sendToTarget();
+        }
     }
 
     public void close()

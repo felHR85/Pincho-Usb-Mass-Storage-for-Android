@@ -6,7 +6,6 @@ import android.util.Log;
 
 import com.felhr.usbmassstorageforandroid.bulkonly.BulkOnlyCommunicator;
 import com.felhr.usbmassstorageforandroid.bulkonly.BulkOnlyStatusInterface;
-import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -154,6 +153,7 @@ public class SCSICommunicator
 
             if(csw.getbCSWStatus() == 0x02)
               communicator.resetRecovery();
+
             scsiInterfaceCallback.onSCSIOperationCompleted((int) csw.getbCSWStatus(), csw.getdCSWDataResidue());
             buffer.goAhead();
         }

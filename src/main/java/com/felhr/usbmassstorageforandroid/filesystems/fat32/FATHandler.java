@@ -694,7 +694,6 @@ public class FATHandler
         while(index1 < data.length)
         {
             System.arraycopy(data, index1, bufferEntry, 0, entrySize);
-            Log.i("FILE_ENTRIES", HexUtil.hexToString(bufferEntry));
             if((bufferEntry[0] != 0x00 && bufferEntry[0] != (byte) 0xe5)
                     && (bufferEntry[11] == 0x0f || bufferEntry[11] == 0x1f || bufferEntry[11] == 0x2f
                     || bufferEntry[11] == 0x3f)) // LFN Entry

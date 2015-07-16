@@ -22,9 +22,6 @@ public class BulkOnlyCommunicator
 
     private AtomicBoolean flagDataIN;
     private AtomicBoolean flagDataOUT;
-    private byte[] dataBufferIn;
-    private byte[] dataBufferOut;
-    private int bufferINSize;
 
     public BulkOnlyCommunicator(UsbDevice mDevice, UsbDeviceConnection mConnection)
     {
@@ -47,19 +44,17 @@ public class BulkOnlyCommunicator
         {
             flagDataIN.set(false);
             flagDataOUT.set(true);
-            dataBufferOut = data;
 
         }else if(data == null && dataLength > 0)
         {
             flagDataOUT.set(false);
             flagDataIN.set(true);
-            bufferINSize = dataLength;
         }else
         {
             flagDataOUT.set(false);
             flagDataIN.set(false);
         }
-        usbFacade.sendCommand(cbw.getCWBuffer());
+        usbFacade.sendCommand(cbw.getCWBuffer(), data);
     }
 
     public boolean reset()
@@ -100,15 +95,12 @@ public class BulkOnlyCommunicator
             if(response > 0 && flagDataOUT.get()) // CBW correctly sent. Send data.
             {
                 statusCallback.onOperationStarted(true);
-                usbFacade.sendData(dataBufferOut);
             }else if(response > 0 && flagDataIN.get()) // CBW correctly sent. Receive data.
             {
                 statusCallback.onOperationStarted(true);
-                usbFacade.requestData(bufferINSize); // Not needed
             }else if(response > 0) // CBW correctly sent. No data expected.
             {
                 statusCallback.onOperationStarted(true);
-                usbFacade.requestCsw(); // Not needed
             }else if(response <= 0) // CBW not correctly sent.
             {
                 statusCallback.onOperationStarted(false);
@@ -118,7 +110,6 @@ public class BulkOnlyCommunicator
         @Override
         public void cswData(byte[] data)
         {
-            Log.i("Buffer state", "CSW data: " + HexUtil.hexToString(data));
             CommandStatusWrapper csw = CommandStatusWrapper.getCWStatus(data);
             statusCallback.onOperationCompleted(csw);
         }
@@ -126,8 +117,7 @@ public class BulkOnlyCommunicator
         @Override
         public void dataFromHost(int response)
         {
-            if(response > 0)
-                usbFacade.requestCsw();
+
         }
 
         @Override
@@ -136,7 +126,6 @@ public class BulkOnlyCommunicator
             if(data != null)
             {
                 statusCallback.onDataToHost(data);
-                usbFacade.requestCsw();
             }
         }
     };
