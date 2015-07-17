@@ -1,5 +1,7 @@
 package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 
+import android.util.Log;
+
 import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
 import java.io.UnsupportedEncodingException;
@@ -180,9 +182,79 @@ public class LFNHandler
         }
     }
 
-    public static byte[] createLFN(String fileName)
+    public static byte[] getRawLongName(String longName, String shortName, String fileExtension)
     {
-        return null;
+        int numberOfLfn = (longName.length() / 13);
+        if(longName.length() % 13 != 0)
+            numberOfLfn += 1;
+
+        String[] splitStrings = splitLongName(longName);
+        byte[] lfnBuffer = new byte[numberOfLfn * 32];
+        byte ordinalEntry = (byte) (numberOfLfn + 0x40);
+        int charIndex = 0;
+        boolean endOfString = false;
+        int n = 0;
+        for(int k=0;k<=numberOfLfn-1;k++)
+        {
+            String sub = splitStrings[numberOfLfn - k - 1];
+            while(n <= 31)
+            {
+                if(n == 0) // Ordinal Field
+                {
+                    lfnBuffer[32 * k + n] = ordinalEntry;
+                    if(ordinalEntry > 0x40)
+                        ordinalEntry -= 0x40;
+                    ordinalEntry--;
+                    n++;
+                }else if(n == 11) // Attributes
+                {
+                    lfnBuffer[32 * k + n] = (byte) 0x0f;
+                    n++;
+                }else if(n == 12) // Type
+                {
+                    lfnBuffer[32 * k + n] = (byte) 0x00;
+                    n++;
+                }else if(n == 13) // Checksum
+                {
+                    lfnBuffer[32 * k + n] = createCheckSum(shortName, fileExtension);
+                    n++;
+                }else if(n == 26) // Cluster MSB, must equal 0
+                {
+                    lfnBuffer[32 * k + n] = (byte) 0x00;
+                    n++;
+                }else if(n == 27) // Cluster LSB, must equal 0
+                {
+                    lfnBuffer[32 * k + n] = (byte) 0x00;
+                    n++;
+                }else if(endOfString) // No more characters, fill with 0xFF
+                {
+                    lfnBuffer[32 * k + n] = (byte) 0xff;
+                    n++;
+                }else // Unicode characters
+                {
+                    if(charIndex <= sub.length()-1)
+                    {
+                        int codePoint = sub.codePointAt(charIndex);
+                        byte msb = (byte) (codePoint >> 8);
+                        byte lsb = (byte) (codePoint & 0xff);
+                        lfnBuffer[32 * k + n] = lsb;
+                        lfnBuffer[32 * k + (n + 1)] = msb;
+                        charIndex++;
+                        n += 2;
+                    }else if(charIndex > sub.length()-1 && !endOfString)
+                    {
+                        endOfString = true;
+                        lfnBuffer[32 * k + n] = (byte) 0x00;
+                        lfnBuffer[32 * k + (n + 1)] = (byte) 0x00;
+                        n += 2;
+                    }
+                }
+            }
+            charIndex = 0;
+            n = 0;
+            endOfString = false;
+        }
+        return lfnBuffer;
     }
 
 
@@ -254,5 +326,64 @@ public class LFNHandler
             utf8Data[2] = low;
         }
         return utf8Data;
+    }
+
+    private static String[] splitLongName(String longName)
+    {
+        int numberOfSubs = (longName.length() / 13) + 1;
+        String[] splitLongName = new String[numberOfSubs];
+        int n = 0;
+        int index1 = n * 13;
+        int index2 = index1 + 14;
+        for(int i=0;i<=numberOfSubs-1;i++)
+        {
+            if(index2 <= longName.length())
+            {
+                splitLongName[i] = longName.substring(index1, index2);
+                n++;
+                index1 = n * 13;
+                index2 = index1 + 14;
+            }else
+            {
+                splitLongName[i] = longName.substring(index1, longName.length());
+            }
+        }
+
+        return splitLongName;
+    }
+
+    private static byte createCheckSum(String shortName, String fileExtension)
+    {
+        String completeShortName;
+        if(fileExtension.length() != 0)
+            completeShortName = shortName + fileExtension;
+        else
+            completeShortName = shortName;
+
+        if(completeShortName.length() < 11)
+        {
+            byte[] spaces = new byte[11 - completeShortName.length()];
+            for(int i=0;i<=spaces.length-1;i++)
+            {
+                spaces[i] = 0x20;
+            }
+            completeShortName += new String(spaces);
+        }
+
+        int bit7;
+        int checksum = 0;
+        for(int character=0;character < completeShortName.length();character++)
+        {
+            if((1 & checksum) != 0)
+                bit7 = 0x80;
+            else
+                bit7 = 0x00;
+
+            checksum = checksum >> 1;
+            checksum = checksum | bit7;
+            checksum = checksum + (int) completeShortName.charAt(character);
+            checksum = checksum & 0xff;
+        }
+        return (byte) checksum;
     }
 }
