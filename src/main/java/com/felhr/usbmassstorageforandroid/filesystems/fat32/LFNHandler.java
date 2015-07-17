@@ -1,7 +1,5 @@
 package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 
-import android.util.Log;
-
 import com.felhr.usbmassstorageforandroid.utilities.UnsignedUtil;
 
 import java.io.UnsupportedEncodingException;
@@ -24,221 +22,143 @@ public class LFNHandler
         List<Byte> unicodeList = new ArrayList<Byte>();
         if((lfnData[1] != 0x00 || lfnData[2] != 0x00))
         {
-            if((lfnData[1] & 0x80) ==  0x80)
+            int codePoint = (UnsignedUtil.byteToUint(lfnData[2]) << 8) + UnsignedUtil.byteToUint(lfnData[1]);
+            byte[] utf8Data = toUTF8(codePoint);
+            for(byte b : utf8Data)
             {
-                int codePoint = UnsignedUtil.byteToUint((byte) (lfnData[2] << 8)) + UnsignedUtil.byteToUint(lfnData[1]);
-                int utf8Word = toUTF8(codePoint);
-                byte low = (byte) (utf8Word & 0xff);
-                byte high = (byte) ((utf8Word & 0xff00) >> 8);
-                unicodeList.add(high);
-                unicodeList.add(low);
-            }else
-            {
-                unicodeList.add(lfnData[1]);
+                unicodeList.add(b);
             }
         }else
             endChar = true;
 
         if((lfnData[3] != 0x00 || lfnData[4] != 0x00) && !endChar)
         {
-            if((lfnData[3] & 0x80) ==  0x80)
+            int codePoint = (UnsignedUtil.byteToUint(lfnData[4]) << 8) + UnsignedUtil.byteToUint(lfnData[3]);
+            byte[] utf8Data = toUTF8(codePoint);
+            for(byte b : utf8Data)
             {
-                int codePoint = UnsignedUtil.byteToUint((byte) (lfnData[4] << 8)) + UnsignedUtil.byteToUint(lfnData[3]);
-                int utf8Word = toUTF8(codePoint);
-                byte low = (byte) (utf8Word & 0xff);
-                byte high = (byte) ((utf8Word & 0xff00) >> 8);
-                unicodeList.add(high);
-                unicodeList.add(low);
-            }else
-            {
-                unicodeList.add(lfnData[3]);
+                unicodeList.add(b);
             }
         }else
             endChar = true;
 
         if((lfnData[5] != 0x00 || lfnData[6] != 0x00) && !endChar)
         {
-            if((lfnData[5] & 0x80) == 0x80)
+            int codePoint = (UnsignedUtil.byteToUint(lfnData[6]) << 8) + UnsignedUtil.byteToUint(lfnData[5]);
+            byte[] utf8Data = toUTF8(codePoint);
+            for(byte b : utf8Data)
             {
-                int codePoint = UnsignedUtil.byteToUint((byte) (lfnData[6] << 8)) + UnsignedUtil.byteToUint(lfnData[5]);
-                int utf8Word = toUTF8(codePoint);
-                byte low = (byte) (utf8Word & 0xff);
-                byte high = (byte) ((utf8Word & 0xff00) >> 8);
-                unicodeList.add(high);
-                unicodeList.add(low);
-            }else
-            {
-                unicodeList.add(lfnData[5]);
+                unicodeList.add(b);
             }
         }else
             endChar = true;
 
         if((lfnData[7] != 0x00 || lfnData[8] != 0x00) && !endChar)
         {
-            if((lfnData[7] & 0x80) == 0x80)
+            int codePoint = (UnsignedUtil.byteToUint(lfnData[8]) << 8) + UnsignedUtil.byteToUint(lfnData[7]);
+            byte[] utf8Data = toUTF8(codePoint);
+            for(byte b : utf8Data)
             {
-                int codePoint = UnsignedUtil.byteToUint((byte) (lfnData[8] << 8)) + UnsignedUtil.byteToUint(lfnData[7]);
-                int utf8Word = toUTF8(codePoint);
-                byte low = (byte) (utf8Word & 0xff);
-                byte high = (byte) ((utf8Word & 0xff00) >> 8);
-                unicodeList.add(high);
-                unicodeList.add(low);
-            }else
-            {
-                unicodeList.add(lfnData[7]);
+                unicodeList.add(b);
             }
         }else
             endChar = true;
 
         if((lfnData[9] != 0x00 || lfnData[10] != 0x00) && !endChar)
         {
-            if((lfnData[9] & 0x80) == 0x80)
+            int codePoint = (UnsignedUtil.byteToUint(lfnData[10]) << 8) + UnsignedUtil.byteToUint(lfnData[9]);
+            byte[] utf8Data = toUTF8(codePoint);
+            for(byte b : utf8Data)
             {
-                int codePoint = UnsignedUtil.byteToUint((byte) (lfnData[10] << 8)) + UnsignedUtil.byteToUint(lfnData[9]);
-                int utf8Word = toUTF8(codePoint);
-                byte low = (byte) (utf8Word & 0xff);
-                byte high = (byte) ((utf8Word & 0xff00) >> 8);
-                unicodeList.add(high);
-                unicodeList.add(low);
-            }else
-            {
-                unicodeList.add(lfnData[9]);
+                unicodeList.add(b);
             }
         }else
             endChar = true;
 
         if((lfnData[14] != 0x00 || lfnData[15] != 0x00) && !endChar)
         {
-            if((lfnData[14] & 0x80) == 0x80)
+            int codePoint = (UnsignedUtil.byteToUint(lfnData[15]) << 8) + UnsignedUtil.byteToUint(lfnData[14]);
+            byte[] utf8Data = toUTF8(codePoint);
+            for(byte b : utf8Data)
             {
-                int codePoint = UnsignedUtil.byteToUint((byte) (lfnData[15] << 8)) + UnsignedUtil.byteToUint(lfnData[14]);
-                int utf8Word = toUTF8(codePoint);
-                byte low = (byte) (utf8Word & 0xff);
-                byte high = (byte) ((utf8Word & 0xff00) >> 8);
-                unicodeList.add(high);
-                unicodeList.add(low);
-            }else
-            {
-                unicodeList.add(lfnData[14]);
+                unicodeList.add(b);
             }
         }else
             endChar = true;
 
         if((lfnData[16] != 0x00 || lfnData[17] != 0x00) && !endChar)
         {
-            if((lfnData[16] & 0x80) == 0x80)
+            int codePoint = (UnsignedUtil.byteToUint(lfnData[17]) << 8) + UnsignedUtil.byteToUint(lfnData[16]);
+            byte[] utf8Data = toUTF8(codePoint);
+            for(byte b : utf8Data)
             {
-                int codePoint = UnsignedUtil.byteToUint((byte) (lfnData[17] << 8)) + UnsignedUtil.byteToUint(lfnData[16]);
-                int utf8Word = toUTF8(codePoint);
-                byte low = (byte) (utf8Word & 0xff);
-                byte high = (byte) ((utf8Word & 0xff00) >> 8);
-                unicodeList.add(high);
-                unicodeList.add(low);
-            }else
-            {
-                unicodeList.add(lfnData[16]);
+                unicodeList.add(b);
             }
         }else
             endChar = true;
 
         if((lfnData[18] != 0x00 || lfnData[19] != 0x00) && !endChar)
         {
-            if((lfnData[18] & 0x80) == 0x80)
+            int codePoint = (UnsignedUtil.byteToUint(lfnData[19]) << 8) + UnsignedUtil.byteToUint(lfnData[18]);
+            byte[] utf8Data = toUTF8(codePoint);
+            for(byte b : utf8Data)
             {
-                int codePoint = UnsignedUtil.byteToUint((byte) (lfnData[19] << 8)) + UnsignedUtil.byteToUint(lfnData[18]);
-                int utf8Word = toUTF8(codePoint);
-                byte low = (byte) (utf8Word & 0xff);
-                byte high = (byte) ((utf8Word & 0xff00) >> 8);
-                unicodeList.add(high);
-                unicodeList.add(low);
-            }else
-            {
-                unicodeList.add(lfnData[18]);
+                unicodeList.add(b);
             }
         }else
             endChar = true;
 
         if((lfnData[20] != 0x00 || lfnData[21] != 0x00) && !endChar)
         {
-            if((lfnData[20] & 0x80) == 0x80)
+            int codePoint = (UnsignedUtil.byteToUint(lfnData[21]) << 8) + UnsignedUtil.byteToUint(lfnData[20]);
+            byte[] utf8Data = toUTF8(codePoint);
+            for(byte b : utf8Data)
             {
-                int codePoint = UnsignedUtil.byteToUint((byte) (lfnData[21] << 8)) + UnsignedUtil.byteToUint(lfnData[20]);
-                int utf8Word = toUTF8(codePoint);
-                byte low = (byte) (utf8Word & 0xff);
-                byte high = (byte) ((utf8Word & 0xff00) >> 8);
-                unicodeList.add(high);
-                unicodeList.add(low);
-            }else
-            {
-                unicodeList.add(lfnData[20]);
+                unicodeList.add(b);
             }
         }else
             endChar = true;
 
         if((lfnData[22] != 0x00 || lfnData[23] != 0x00) && !endChar)
         {
-            if((lfnData[22] & 0x80) == 0x80)
+            int codePoint = (UnsignedUtil.byteToUint(lfnData[23]) << 8) + UnsignedUtil.byteToUint(lfnData[22]);
+            byte[] utf8Data = toUTF8(codePoint);
+            for(byte b : utf8Data)
             {
-                int codePoint = UnsignedUtil.byteToUint((byte) (lfnData[23] << 8)) + UnsignedUtil.byteToUint(lfnData[22]);
-                int utf8Word = toUTF8(codePoint);
-                byte low = (byte) (utf8Word & 0xff);
-                byte high = (byte) ((utf8Word & 0xff00) >> 8);
-                unicodeList.add(high);
-                unicodeList.add(low);
-            }else
-            {
-                unicodeList.add(lfnData[22]);
+                unicodeList.add(b);
             }
         }else
             endChar = true;
 
         if((lfnData[24] != 0x00 || lfnData[25] != 0x00) && !endChar)
         {
-            if((lfnData[24] & 0x80) == 0x80)
+            int codePoint = (UnsignedUtil.byteToUint(lfnData[25]) << 8) + UnsignedUtil.byteToUint(lfnData[24]);
+            byte[] utf8Data = toUTF8(codePoint);
+            for(byte b : utf8Data)
             {
-                int codePoint = UnsignedUtil.byteToUint((byte) (lfnData[25] << 8)) + UnsignedUtil.byteToUint(lfnData[24]);
-                int utf8Word = toUTF8(codePoint);
-                byte low = (byte) (utf8Word & 0xff);
-                byte high = (byte) ((utf8Word & 0xff00) >> 8);
-                unicodeList.add(high);
-                unicodeList.add(low);
-            }else
-            {
-                unicodeList.add(lfnData[24]);
+                unicodeList.add(b);
             }
         }else
             endChar = true;
 
         if((lfnData[28] != 0x00 || lfnData[29] != 0x00) && !endChar)
         {
-            if((lfnData[28] & 0x80) == 0x80)
+            int codePoint = (UnsignedUtil.byteToUint(lfnData[29]) << 8) + UnsignedUtil.byteToUint(lfnData[28]);
+            byte[] utf8Data = toUTF8(codePoint);
+            for(byte b : utf8Data)
             {
-                int codePoint = UnsignedUtil.byteToUint((byte) (lfnData[29] << 8)) + UnsignedUtil.byteToUint(lfnData[28]);
-                int utf8Word = toUTF8(codePoint);
-                byte low = (byte) (utf8Word & 0xff);
-                byte high = (byte) ((utf8Word & 0xff00) >> 8);
-                unicodeList.add(high);
-                unicodeList.add(low);
-            }else
-            {
-                unicodeList.add(lfnData[28]);
+                unicodeList.add(b);
             }
         }else
             endChar = true;
 
         if((lfnData[30] != 0x00 || lfnData[31] != 0x00) && !endChar)
         {
-            if((lfnData[30] & 0x80) == 0x80)
+            int codePoint = (UnsignedUtil.byteToUint(lfnData[31]) << 8) + UnsignedUtil.byteToUint(lfnData[30]);
+            byte[] utf8Data = toUTF8(codePoint);
+            for(byte b : utf8Data)
             {
-                int codePoint = UnsignedUtil.byteToUint((byte) (lfnData[31] << 8)) + UnsignedUtil.byteToUint(lfnData[30]);
-                int utf8Word = toUTF8(codePoint);
-                byte low = (byte) (utf8Word & 0xff);
-                byte high = (byte) ((utf8Word & 0xff00) >> 8);
-                unicodeList.add(high);
-                unicodeList.add(low);
-            }else
-            {
-                unicodeList.add(lfnData[30]);
+                unicodeList.add(b);
             }
         }
 
@@ -266,53 +186,73 @@ public class LFNHandler
     }
 
 
-
     /*
-        Encode a code point to UTF-8
+        Encode two-byte codepoints to UTF-8
      */
-    private static int toUTF8(int codePoint)
+
+    private static byte[] toUTF8(int codepoint)
     {
-        int utf8Value = codePoint & 0x3f;
+        byte[] utf8Data = null;
 
-        if((codePoint >> 6 & 1) == 1)
+        if(codepoint <= 127) // 1-byte encoding
         {
+            utf8Data = new byte[]{(byte) codepoint};
+            return utf8Data;
+        }else if(codepoint <= 2047) // 2-byte encoding
+        {
+            int utf8Value = codepoint & 0x3f;
+            utf8Data = new byte[2];
+
             utf8Value &= ~(1 << 6);
-            utf8Value |= (1 << 8);
-        }else
+            utf8Value |= (1 << 7);
+            utf8Value &= ~(1 << 13);
+            utf8Value |= (1 << 14);
+            utf8Value |= (1 << 15);
+
+            for(int i=6;i<=10;i++)
+            {
+                if((codepoint >> i & 1) == 1)
+                {
+                    utf8Value |= (1 << (i+2));
+                }
+            }
+
+            byte low = (byte) (utf8Value & 0xff);
+            byte high = (byte) ((utf8Value & 0xff00) >> 8);
+            utf8Data[0] = high;
+            utf8Data[1] = low;
+        }else // 3-byte encoding
         {
+            int utf8Value = codepoint & 0x3f;
+            utf8Data = new byte[3];
+
             utf8Value &= ~(1 << 6);
-            utf8Value &= ~(1 << 8);
-        }
-
-        if((codePoint >> 7 & 1) == 1)
-        {
             utf8Value |= (1 << 7);
-            utf8Value |= (1 << 9);
-        }else
-        {
-            utf8Value |= (1 << 7);
-            utf8Value &= ~(1 << 9);
+            utf8Value &= ~(1 << 14);
+            utf8Value |= (1 << 15);
+
+            utf8Value &= ~(1 << 20);
+            utf8Value |= (1 << 21);
+            utf8Value |= (1 << 22);
+            utf8Value |= (1 << 23);
+
+            for(int i=6;i<=15;i++)
+            {
+                if((codepoint >> i & 1) == 1 && (i < 12))
+                {
+                    utf8Value |= (1 << (i+2));
+                }else if((codepoint >> i & 1) == 1 && (i >= 12))
+                {
+                    utf8Value |= (1 << (i+4));
+                }
+            }
+            byte low = (byte) (utf8Value & 0xff);
+            byte mid = (byte) ((utf8Value & 0xff00) >> 8);
+            byte high = (byte) ((utf8Value & 0xff0000) >> 16);
+            utf8Data[0] = high;
+            utf8Data[1] = mid;
+            utf8Data[2] = low;
         }
-
-        if((codePoint >> 8 & 1) == 1)
-            utf8Value |= (1 << 10);
-        else
-            utf8Value &= ~(1 << 10);
-
-        if((codePoint >> 9 & 1) == 1)
-            utf8Value |= (1 << 11);
-        else
-            utf8Value &= ~(1 << 11);
-
-        if((codePoint >> 10 & 1) == 1)
-            utf8Value |= (1 << 12);
-        else
-            utf8Value &= ~(1 << 12);
-
-        utf8Value &= ~(1 << 13);
-        utf8Value |= (1 << 14);
-        utf8Value |= (1 << 15);
-
-        return utf8Value;
+        return utf8Data;
     }
 }
