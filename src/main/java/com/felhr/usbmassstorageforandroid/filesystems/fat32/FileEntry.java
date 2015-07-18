@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -125,7 +124,7 @@ public class FileEntry
         FileEntry entry = new FileEntry();
         if(files != null)
         {
-            String[] fileAndExtension = get8dot3NameExtension(name, files);
+            String[] fileAndExtension = ShortNameGenerator.getRandomShortName(name);
             entry.shortName = fileAndExtension[0];
             entry.fileExtension = fileAndExtension[1];
             entry.longName = name;
@@ -354,116 +353,6 @@ public class FileEntry
         System.arraycopy(new byte[]{b4, b3, b2, b1}, 0, rawFileEntry, index, 4);
 
         return rawFileEntry;
-    }
-
-    public static String[] get8dot3NameExtension(String nameFile, List<FileEntry> files)
-    {
-        String[] fileAndExtension = new String[2];
-
-        if(nameFile.length() > 8)
-        {
-            String strStep1 = nameFile.replaceAll("\\s+", "");
-            boolean first = false;
-            StringBuilder strStep2Builder = new StringBuilder(strStep1);
-            for(int i=strStep1.length()-1;i>=0;i--)
-            {
-                if(strStep1.charAt(i) == '.' && !first)
-                {
-                    first = true;
-                }else if(strStep1.charAt(i) == '.' && first)
-                {
-                    strStep2Builder.deleteCharAt(i);
-                }
-            }
-
-            String[] strStep3 = strStep2Builder.toString().split("\\.");
-            String truncatedName= "";
-            String truncatedExtension = "";
-
-            if(strStep3[0].length() <= 8) // Not need to create a unique shortFileName
-            {
-                truncatedName = strStep3[0].substring(0, strStep3[0].length());
-                if(strStep3.length > 1)
-                {
-                    if (strStep3[1].length() <= 3)
-                        truncatedExtension = strStep3[1].substring(0, strStep3[1].length());
-                    else
-                        truncatedExtension = strStep3[1].substring(0, 3);
-                }else // Dir or file without extension
-                {
-                    truncatedExtension = "";
-                }
-
-                truncatedName = truncatedName.replaceAll("[^\\p{ASCII}]", "_");
-                truncatedExtension = truncatedExtension.replaceAll("[^\\p{ASCII}]", "_");
-                truncatedName = truncatedName.toUpperCase();
-                truncatedExtension = truncatedExtension.toUpperCase();
-
-                fileAndExtension[0] = truncatedName;
-                fileAndExtension[1] = truncatedExtension;
-
-                return fileAndExtension;
-            }else // Create a unique shortFileName
-            {
-                truncatedName = strStep3[0].substring(0, 6);
-                if(strStep3.length > 1)
-                {
-                    if (strStep3[1].length() <= 3)
-                        truncatedExtension = strStep3[1].substring(0, strStep3[1].length());
-                    else
-                        truncatedExtension = strStep3[1].substring(0, 3);
-                }else
-                {
-                    truncatedExtension = "";
-                }
-
-                truncatedName = truncatedName.replaceAll("[^\\p{ASCII}]", "_");
-                truncatedExtension = truncatedExtension.replaceAll("[^\\p{ASCII}]", "_");
-                truncatedName = truncatedName.toUpperCase();
-                truncatedExtension = truncatedExtension.toUpperCase();
-
-                if(files != null)
-                {
-                    int counter = 1;
-                    Iterator<FileEntry> e = files.iterator();
-                    while(e.hasNext())
-                    {
-                        FileEntry next = e.next();
-                        if(next.getShortName().length() == 8 && next.getShortName().substring(0, 6).equals(truncatedName))
-                            counter++;
-                    }
-
-                    truncatedName += "~" + String.valueOf(counter);
-
-                }else
-                {
-                    truncatedName += "~" + "1";
-                }
-
-                fileAndExtension[0] = truncatedName;
-                fileAndExtension[1] = truncatedExtension;
-                return fileAndExtension;
-            }
-
-        }else
-        {
-            String strNoSpaces =  nameFile.replaceAll("\\s+", "");
-            String strAscii = strNoSpaces.replaceAll("[^\\p{ASCII}]", "_");
-            String[] strTruncated = strAscii.split("\\.");
-            if(strTruncated.length > 1)
-            {
-                fileAndExtension[0] = strTruncated[0].toUpperCase();
-                String extension = strTruncated[1];
-                if(extension.length() > 3)
-                    extension = extension.substring(0, 3);
-                fileAndExtension[1] = extension;
-            }else
-            {
-                fileAndExtension[0] = strTruncated[0].toUpperCase();
-                fileAndExtension[1] = "";
-            }
-            return fileAndExtension;
-        }
     }
 
     private static class Attributes
