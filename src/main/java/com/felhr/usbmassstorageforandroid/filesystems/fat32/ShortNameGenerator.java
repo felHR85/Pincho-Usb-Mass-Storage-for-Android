@@ -34,7 +34,13 @@ public class ShortNameGenerator
         }
 
         String[] strStep3 = strStep2Builder.toString().split("\\.");
-        fileAndExtension[1] = strStep3[1];
+        if(strStep3.length > 1)
+        {
+            if(strStep3[1].length() > 3)
+                strStep3[1] = strStep3[1].substring(0, 3);
+            fileAndExtension[1] = strStep3[1];
+        }else
+            fileAndExtension[1] = "";
 
         String shortName = "";
         Random r = new Random();
