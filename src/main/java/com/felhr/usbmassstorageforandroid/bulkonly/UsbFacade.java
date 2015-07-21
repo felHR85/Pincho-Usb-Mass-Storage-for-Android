@@ -24,6 +24,7 @@ import commandwrappers.CommandWrapper;
 public class UsbFacade
 {
     private final int USB_ENDPOINT_LENGTH = 512;
+    private int USB_IN_BUFFER_LENGTH;
 
     private static final int USB_TIMEOUT = 500;
 
@@ -47,6 +48,7 @@ public class UsbFacade
     {
         this.mDevice = mDevice;
         this.mConnection = mConnection;
+        USB_IN_BUFFER_LENGTH = USB_ENDPOINT_LENGTH;
     }
 
     public void setCallback(UsbFacadeInterface facadeInterface)
@@ -139,11 +141,23 @@ public class UsbFacade
 
     public void sendCommand(byte[] cbwBuffer, byte[] data)
     {
+        USB_IN_BUFFER_LENGTH = 13;
+        dataInThread.setBuffer(USB_IN_BUFFER_LENGTH);
         outHandler.obtainMessage(CBW_TRANSPORT, cbwBuffer).sendToTarget();
         if(data != null)
         {
             outHandler.obtainMessage(DATA_FROM_HOST, data).sendToTarget();
         }
+    }
+
+    /*
+        sendCommand when it is necessary to perform a READ 10 operation
+     */
+    public void sendCommand(byte[] cbwBuffer, int dataLength)
+    {
+        USB_IN_BUFFER_LENGTH = dataLength;
+        dataInThread.setBuffer(USB_IN_BUFFER_LENGTH);
+        outHandler.obtainMessage(CBW_TRANSPORT, cbwBuffer).sendToTarget();
     }
 
     public void close()
@@ -201,19 +215,22 @@ public class UsbFacade
     {
         private byte[] buffer;
         private AtomicBoolean keep;
+        private AtomicBoolean waiting;
 
         public DataInThread()
         {
             this.buffer = new byte[USB_ENDPOINT_LENGTH];
             this.keep = new AtomicBoolean(true);
+            this.waiting = new AtomicBoolean(true);
         }
 
         @Override
         public void run()
         {
+            waitTillBufferSet();
             while(keep.get())
             {
-                int response = mConnection.bulkTransfer(inEndpoint, buffer, USB_ENDPOINT_LENGTH, 0);
+                int response = mConnection.bulkTransfer(inEndpoint, buffer, USB_IN_BUFFER_LENGTH, 0);
                 if(response > 0)
                 {
                     byte[] receivedData = new byte[response];
@@ -227,6 +244,7 @@ public class UsbFacade
                     {
                         if(facadeInterface != null)
                             facadeInterface.cswData(receivedData);
+                        waitTillBufferSet();
                     }else // It is data to host
                     {
                         if(facadeInterface != null)
@@ -234,6 +252,29 @@ public class UsbFacade
                     }
                 }
             }
+        }
+
+        public synchronized void setBuffer(int bufferLength)
+        {
+            if(bufferLength != buffer.length)
+                this.buffer = new byte[bufferLength];
+            waiting.set(false);
+            notify();
+        }
+
+        private synchronized void waitTillBufferSet()
+        {
+            while(waiting.get())
+            {
+                try
+                {
+                    wait();
+                } catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+            }
+            waiting.set(true);
         }
 
         public void stopThread()

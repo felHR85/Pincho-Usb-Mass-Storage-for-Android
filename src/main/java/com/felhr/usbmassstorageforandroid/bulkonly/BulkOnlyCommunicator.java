@@ -37,21 +37,22 @@ public class BulkOnlyCommunicator
     public void sendCbw(CommandBlockWrapper cbw, byte[] data)
     {
         int dataLength = cbw.getdCBWDataLength();
-        if(data != null && dataLength > 0)
+        if(data != null && dataLength > 0) //OUT
         {
             flagDataIN.set(false);
             flagDataOUT.set(true);
-
-        }else if(data == null && dataLength > 0)
+            usbFacade.sendCommand(cbw.getCWBuffer(), data);
+        }else if(data == null && dataLength > 0) // IN
         {
             flagDataOUT.set(false);
             flagDataIN.set(true);
+            usbFacade.sendCommand(cbw.getCWBuffer(), dataLength);
         }else
         {
             flagDataOUT.set(false);
             flagDataIN.set(false);
+            usbFacade.sendCommand(cbw.getCWBuffer(), data);
         }
-        usbFacade.sendCommand(cbw.getCWBuffer(), data);
     }
 
     public boolean reset()
