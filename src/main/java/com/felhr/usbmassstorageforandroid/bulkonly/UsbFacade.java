@@ -26,7 +26,7 @@ public class UsbFacade
     private final int USB_ENDPOINT_LENGTH = 512;
     private int USB_IN_BUFFER_LENGTH;
 
-    private static final int USB_TIMEOUT = 500;
+    private static final int USB_TIMEOUT = 0;
 
     private static final int CBW_TRANSPORT = 0;
     private static final int DATA_FROM_HOST = 1;
@@ -151,7 +151,7 @@ public class UsbFacade
     }
 
     /*
-        sendCommand when it is necessary to perform a READ 10 operation
+        sendCommand when it is necessary to perform a operation with IN data
      */
     public void sendCommand(byte[] cbwBuffer, int dataLength)
     {

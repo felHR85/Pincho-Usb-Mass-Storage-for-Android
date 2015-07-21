@@ -2,6 +2,7 @@ package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
+import android.util.Log;
 
 import com.felhr.usbmassstorageforandroid.filesystems.MasterBootRecord;
 import com.felhr.usbmassstorageforandroid.filesystems.Partition;
@@ -316,7 +317,7 @@ public class FATHandler
         System.arraycopy(rawFileEntry, 0, dirData, index, rawFileEntry.length);
 
         // Write file entry
-        writeClusters(clusterChain, dirData);
+        writeClusters2(clusterChain, dirData);
 
         // update free entries
         path.setFreeEntries(path.getFreeEntries() - fileEntriesRequired);
@@ -324,7 +325,7 @@ public class FATHandler
         // Write file only if file entry is not a directory and the size is not 0
         if(!isDirectory && size != 0)
         {
-            boolean result = writeClusters(fileClusterChain, data);
+            boolean result = writeClusters2(fileClusterChain, data);
             if(result)
             {
                 path.addFileEntry(newEntry);
@@ -348,7 +349,7 @@ public class FATHandler
             System.arraycopy(dotEntryRaw, 0, dotEntriesRaw, 0, 32);
             System.arraycopy(dotDotEntryRaw, 0, dotEntriesRaw, 32, 32);
 
-            writeClusters(fileClusterChain, dotEntriesRaw);
+            writeClusters2(fileClusterChain, dotEntriesRaw);
         }
 
         path.addFileEntry(newEntry);
@@ -381,7 +382,7 @@ public class FATHandler
                 byte[] data = readClusters(clusterChainFolder);
                 boolean result = setEntryToErased(data, i, entry.getLongName());
                 if(result)
-                    writeClusters(clusterChainFolder, data);
+                    writeClusters2(clusterChainFolder, data);
                 else
                     return false;
 
@@ -521,7 +522,7 @@ public class FATHandler
                     List<Long> singleList = new ArrayList<Long>();
                     singleList.add(clusterEntry);
                     byte[] zeroedCluster = new byte[(int) (reservedRegion.getBytesPerSector() * reservedRegion.getSectorsPerCluster())];
-                    writeClusters(singleList, zeroedCluster); // Set the referred cluster to 0x00 (whole cluster is empty)
+                    writeClusters2(singleList, zeroedCluster); // Set the referred cluster to 0x00 (whole cluster is empty)
 
                     // Previous last cluster FAT entry now points to the new last cluster
                     byte[] dataPrevLBA = readBytes(lbaFATLastCluster, 1);
@@ -601,6 +602,67 @@ public class FATHandler
             if(!result)
                 return false;
             k++;
+        }
+        return true;
+    }
+
+    private boolean writeClusters2(List<Long> clusters, byte[] data)
+    {
+        int maxLength = (int) (255 * reservedRegion.getBytesPerSector());
+        int maxClusters = (int) ((reservedRegion.getBytesPerSector() * reservedRegion.getSectorsPerCluster()) / maxLength);
+        Log.i("OPTIMIZATION", "MaxClusters: " + String.valueOf(maxClusters));
+        int j = 0;
+        long firstClusterLba = partition.getLbaStart() + reservedRegion.getNumberReservedSectors()
+                + (reservedRegion.getFatCopies() * reservedRegion.getNumberSectorsPerFat());
+        Iterator<Long> e = clusters.iterator();
+        long lastCluster = 0;
+        int pointer = 0;
+
+        if(clusters.size() == 1)
+        {
+            //Log.i("OPTIMIZATION", "Clusters: 1" );
+            int bufferLength = (int) (reservedRegion.getBytesPerSector() * reservedRegion.getSectorsPerCluster());
+            byte[] buffer = new byte[bufferLength];
+            long lbaCluster =  firstClusterLba + (clusters.get(0) - 2) * reservedRegion.getSectorsPerCluster();
+            System.arraycopy(data, 0, buffer, 0, data.length);
+            return writeBytes(lbaCluster, buffer);
+        }
+
+        while(e.hasNext())
+        {
+            long cluster = e.next();
+            Log.i("OPTIMIZATION", "Cluster: " + String.valueOf(cluster));
+            Log.i("OPTIMIZATION", "Last Cluster: " + String.valueOf(lastCluster));
+            Log.i("OPTIMIZATION", "Last List Cluster: " + String.valueOf(clusters.get(clusters.size()-1)));
+
+            if((cluster == lastCluster + j || lastCluster == 0) && cluster != clusters.get(clusters.size()-1) && j<= maxClusters)
+            {
+                // Consider this cluster adjacent unless:
+                // Obviously the next cluster is not
+                // It is the first cluster
+                // SCSI Read 10 operations maximum length is 255 * 512
+                if(lastCluster == 0)
+                    lastCluster = cluster;
+                j++;
+            }else // Write clusters
+            {
+                int bufferLength = (int) (reservedRegion.getBytesPerSector() * reservedRegion.getSectorsPerCluster() * (j+1));
+                Log.i("OPTIMIZATION", "Buffer_length: " + String.valueOf(bufferLength));
+                byte[] buffer = new byte[bufferLength];
+                long lbaCluster =  firstClusterLba + (lastCluster - 2) * reservedRegion.getSectorsPerCluster();
+                if(pointer + bufferLength <= data.length)
+                    System.arraycopy(data, pointer, buffer, 0, bufferLength);
+                else
+                    System.arraycopy(data, pointer, buffer, 0, data.length - pointer);
+
+                boolean result = writeBytes(lbaCluster, buffer);
+                if(!result)
+                    return false;
+
+                lastCluster = 0;
+                j = 0;
+                pointer += bufferLength;
+            }
         }
         return true;
     }

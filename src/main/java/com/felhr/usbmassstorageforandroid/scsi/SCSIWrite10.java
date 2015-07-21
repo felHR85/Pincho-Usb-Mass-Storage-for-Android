@@ -110,7 +110,6 @@ public class SCSIWrite10 extends SCSICommand
     public CommandBlockWrapper getCbw()
     {
         byte[] rawCommand = getCbwcb(getSCSICommandBuffer());
-        Log.i("Buffer state", "SCSI: " + HexUtil.hexToString(rawCommand));
         int dCBWDataTransferLength = transferLength * 512;
 
         byte bmCBWFlags = 0x00;
