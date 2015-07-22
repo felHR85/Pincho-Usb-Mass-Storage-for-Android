@@ -608,8 +608,9 @@ public class FATHandler
 
     private boolean writeClusters2(List<Long> clusters, byte[] data)
     {
-        int maxLength = (int) (255 * reservedRegion.getBytesPerSector());
-        int maxClusters = (int) ((reservedRegion.getBytesPerSector() * reservedRegion.getSectorsPerCluster()) / maxLength);
+        int maxLength = 16384; // Linux/libusb internally can handle a buffer of 16834 for bulk transfers
+        int maxClusters = (int) (maxLength / (reservedRegion.getBytesPerSector() * reservedRegion.getSectorsPerCluster()));
+        Log.i("OPTIMIZATION", "MaxLength: " + String.valueOf(maxLength));
         Log.i("OPTIMIZATION", "MaxClusters: " + String.valueOf(maxClusters));
         int j = 0;
         long firstClusterLba = partition.getLbaStart() + reservedRegion.getNumberReservedSectors()
@@ -635,7 +636,7 @@ public class FATHandler
             Log.i("OPTIMIZATION", "Last Cluster: " + String.valueOf(lastCluster));
             Log.i("OPTIMIZATION", "Last List Cluster: " + String.valueOf(clusters.get(clusters.size()-1)));
 
-            if((cluster == lastCluster + j || lastCluster == 0) && cluster != clusters.get(clusters.size()-1) && j<= maxClusters)
+            if((cluster == lastCluster + j || lastCluster == 0) && cluster != clusters.get(clusters.size()-1) && j < maxClusters)
             {
                 // Consider this cluster adjacent unless:
                 // Obviously the next cluster is not
@@ -646,7 +647,12 @@ public class FATHandler
                 j++;
             }else // Write clusters
             {
-                int bufferLength = (int) (reservedRegion.getBytesPerSector() * reservedRegion.getSectorsPerCluster() * (j+1));
+                Log.i("OPTIMIZATION", "J: " + String.valueOf(j));
+                int bufferLength;
+                if(j == 0)
+                    bufferLength = (int) (reservedRegion.getBytesPerSector() * reservedRegion.getSectorsPerCluster() * (j+1));
+                else
+                    bufferLength = (int) (reservedRegion.getBytesPerSector() * reservedRegion.getSectorsPerCluster() * j);
                 Log.i("OPTIMIZATION", "Buffer_length: " + String.valueOf(bufferLength));
                 byte[] buffer = new byte[bufferLength];
                 long lbaCluster =  firstClusterLba + (lastCluster - 2) * reservedRegion.getSectorsPerCluster();

@@ -2,6 +2,7 @@ package com.felhr.usbmassstorageforandroid.bulkonly;
 
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
+import android.util.Log;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
