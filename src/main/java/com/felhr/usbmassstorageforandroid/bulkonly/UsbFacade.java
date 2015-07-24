@@ -8,10 +8,8 @@ import android.hardware.usb.UsbInterface;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 
 import com.felhr.usbmassstorageforandroid.utilities.EndianessUtil;
-import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -196,7 +194,6 @@ public class UsbFacade
                 {
                     byte[] buffer = (byte[]) msg.obj;
                     int response = mConnection.bulkTransfer(outEndpoint, buffer, buffer.length, USB_TIMEOUT);
-                    Log.i("CBW", "Response OUT: " + String.valueOf(response));
                     switch(msg.what)
                     {
                         case CBW_TRANSPORT:
