@@ -623,12 +623,18 @@ public class FATHandler
             boolean keep = true;
             while(i < maxClusters && keep)
             {
-                if(cluster == e.next() + i)
-                    i++;
-                else
+                if(e.hasNext())
                 {
-                    if(e.hasPrevious())
-                        e.previous();
+                    if (cluster == e.next() + i)
+                        i++;
+                    else
+                    {
+                        if (e.hasPrevious())
+                            e.previous();
+                        keep = false;
+                    }
+                }else
+                {
                     keep = false;
                 }
             }
@@ -638,12 +644,9 @@ public class FATHandler
             byte[] buffer = new byte[bufferLength];
 
             if(pointer + bufferLength <= data.length)
-            {
                 System.arraycopy(data, pointer, buffer, 0, bufferLength);
-            }else
-            {
+            else
                 System.arraycopy(data, pointer, buffer, 0, data.length - pointer);
-            }
 
             boolean result = writeBytes(lbaCluster, buffer);
             if(!result)
