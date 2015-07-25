@@ -582,32 +582,7 @@ public class FATHandler
         return true;
     }
 
-
     private boolean writeClusters(List<Long> clusters, byte[] data)
-    {
-        int bufferLength = (int) (reservedRegion.getBytesPerSector() * reservedRegion.getSectorsPerCluster());
-        int k = 0;
-        byte[] buffer = new byte[bufferLength];
-        long firstClusterLba = partition.getLbaStart() + reservedRegion.getNumberReservedSectors()
-                + (reservedRegion.getFatCopies() * reservedRegion.getNumberSectorsPerFat());
-        Iterator<Long> e = clusters.iterator();
-        while(e.hasNext())
-        {
-            long cluster = e.next();
-            long lbaCluster =  firstClusterLba + (cluster - 2) * reservedRegion.getSectorsPerCluster();
-            if(k * bufferLength + bufferLength <= data.length)
-                System.arraycopy(data, k * bufferLength, buffer, 0, bufferLength);
-            else
-                System.arraycopy(data, k * bufferLength, buffer, 0, data.length - k * bufferLength);
-            boolean result = writeBytes(lbaCluster, buffer);
-            if(!result)
-                return false;
-            k++;
-        }
-        return true;
-    }
-
-    private boolean writeClusters2(List<Long> clusters, byte[] data)
     {
         int maxLength = 16384; // Linux/libusb internally can only handle a buffer of 16834 for bulk transfers
         int maxClusters = (int) (maxLength / (reservedRegion.getBytesPerSector() * reservedRegion.getSectorsPerCluster()));
@@ -625,11 +600,11 @@ public class FATHandler
             {
                 if(e.hasNext())
                 {
-                    if (cluster == e.next() + i)
+                    if(cluster == e.next() - i)
                         i++;
                     else
                     {
-                        if (e.hasPrevious())
+                        if(e.hasPrevious())
                             e.previous();
                         keep = false;
                     }
