@@ -1,8 +1,5 @@
 package com.felhr.usbmassstorageforandroid.scsi;
 
-import android.util.Log;
-
-import com.felhr.usbmassstorageforandroid.utilities.HexUtil;
 
 import java.nio.ByteBuffer;
 

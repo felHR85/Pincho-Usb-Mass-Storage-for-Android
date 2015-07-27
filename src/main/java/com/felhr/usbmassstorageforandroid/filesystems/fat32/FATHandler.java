@@ -635,19 +635,51 @@ public class FATHandler
 
     private byte[] readClusters(List<Long> clusters)
     {
+        int maxLength = 16384; // Linux/libusb internally can only handle a buffer of 16834 for bulk transfers
+        int maxClusters = (int) (maxLength / (reservedRegion.getBytesPerSector() * reservedRegion.getSectorsPerCluster()));
         long firstClusterLba = partition.getLbaStart() + reservedRegion.getNumberReservedSectors()
                 + (reservedRegion.getFatCopies() * reservedRegion.getNumberSectorsPerFat());
+
         int lengthData = clusters.size() * ((int) (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()));
         byte[] data = new byte[lengthData];
-        int index = 0;
-        Iterator<Long> e = clusters.iterator();
+
+        ListIterator<Long> e = clusters.listIterator();
+        int pointer = 0;
+
         while(e.hasNext())
         {
             long cluster = e.next();
-            long lbaCluster =  firstClusterLba + (cluster - 2) * reservedRegion.getSectorsPerCluster();
-            byte[] clusterData = readBytes(lbaCluster, (int) reservedRegion.getSectorsPerCluster());
-            System.arraycopy(clusterData, 0, data, index, clusterData.length);
-            index += reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector();
+            int i = 1;
+            boolean keep = true;
+            while(i < maxClusters && keep)
+            {
+                if(e.hasNext())
+                {
+                    if(cluster == e.next() - i)
+                        i++;
+                    else
+                    {
+                        if(e.hasPrevious())
+                            e.previous();
+                        keep = false;
+                    }
+                }else
+                {
+                    keep = false;
+                }
+            }
+
+            long lbaCluster = firstClusterLba + (cluster - 2) * reservedRegion.getSectorsPerCluster();
+            int clustersLength = i *  (int) (reservedRegion.getSectorsPerCluster());
+            int bufferLength = clustersLength * ((int) reservedRegion.getBytesPerSector());
+
+            byte[] rawClusters = readBytes(lbaCluster, clustersLength);
+            if(rawClusters == null)
+                return null;
+
+            System.arraycopy(rawClusters, 0, data, pointer, bufferLength);
+
+            pointer += bufferLength;
         }
         return data;
     }
