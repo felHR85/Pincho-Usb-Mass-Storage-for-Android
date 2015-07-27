@@ -2,7 +2,6 @@ package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
-import android.util.Log;
 
 import com.felhr.usbmassstorageforandroid.filesystems.MasterBootRecord;
 import com.felhr.usbmassstorageforandroid.filesystems.Partition;
@@ -16,7 +15,6 @@ import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
