@@ -42,6 +42,11 @@ public class Partition
         }
     }
 
+    public boolean isFAT32()
+    {
+        return partitionType == 0x0b || partitionType == 0x0c;
+    }
+
     public Bundle getReadableResponse()
     {
         Bundle bundle = new Bundle();

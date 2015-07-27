@@ -67,6 +67,8 @@ public class FATHandler
         if(mbr.getPartitions().length >= partitionIndex + 1)
         {
             partition = mbr.getPartitions()[partitionIndex];
+            if(!partition.isFAT32())
+                return false;
             reservedRegion = getReservedRegion();
             List<Long> clustersRoot = getClusterChain(2);
             byte[] data = readClusters(clustersRoot);
