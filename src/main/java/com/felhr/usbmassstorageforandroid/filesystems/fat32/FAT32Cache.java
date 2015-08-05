@@ -1,21 +1,27 @@
 package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 
-import android.os.Handler;
-
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Felipe Herranz(felhr85@gmail.com) on 4/8/15.
  */
 public class FAT32Cache
 {
-    private Map<Long, byte[]> fatSectors;
-    private Handler wHandler;
+    private List<Long> clusterList;
 
-    public FAT32Cache(int size)
+    public FAT32Cache()
     {
-        fatSectors = new HashMap<Long, byte[]>(size);
+        clusterList = new ArrayList<Long>();
     }
 
+    public void addCluster(long cluster)
+    {
+        clusterList.add(cluster);
+    }
+
+    public void deleteCluster()
+    {
+        clusterList.remove(0);
+    }
 }

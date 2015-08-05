@@ -48,6 +48,7 @@ public class FATHandler
 
     //CacheThread vars
     private Handler wHandler;
+    private FAT32Cache cache;
     private CacheThread cacheThread;
 
     public FATHandler(UsbDevice mDevice, UsbDeviceConnection mConnection)
@@ -937,6 +938,7 @@ public class FATHandler
                     switch(msg.what)
                     {
                         case LOAD_CACHE:
+                            populateCache();
                             break;
                         case FIND_EMPTY_CLUSTERCHAIN:
                             break;
@@ -945,5 +947,25 @@ public class FATHandler
             };
             Looper.loop();
         }
+
+        private void populateCache()
+        {
+            long lbaFATStart = getEntryLBA(0);
+            long lbaFATEnd = getEntryLBA(0) + reservedRegion.getNumberSectorsPerFat();
+
+            for(long i=lbaFATStart;i<=lbaFATEnd-1;i++)
+            {
+                //TODO: Low priority operations, if user performs any operation just wait.
+                byte[] rawFATLba = readBytes(i, 1);
+                if(isCacheable(rawFATLba))
+                    cache.addCluster(i);
+            }
+        }
+
+        private boolean isCacheable(byte[] rawSector)
+        {
+            return true;
+        }
+
     }
 }
