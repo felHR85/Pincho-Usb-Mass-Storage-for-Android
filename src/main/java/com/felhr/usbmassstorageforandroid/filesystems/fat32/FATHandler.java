@@ -2,6 +2,9 @@ package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 
 import com.felhr.usbmassstorageforandroid.filesystems.MasterBootRecord;
 import com.felhr.usbmassstorageforandroid.filesystems.Partition;
@@ -27,6 +30,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class FATHandler
 {
+    private static final int LOAD_CACHE = 0;
+    private static final int FIND_EMPTY_CLUSTERCHAIN = 1;
+
     private SCSICommunicator comm;
     private final Object monitor;
     private SCSIResponse currentResponse;
@@ -39,6 +45,10 @@ public class FATHandler
     private Partition partition;
     private ReservedRegion reservedRegion;
     private Path path;
+
+    //CacheThread vars
+    private Handler wHandler;
+    private CacheThread cacheThread;
 
     public FATHandler(UsbDevice mDevice, UsbDeviceConnection mConnection)
     {
@@ -912,4 +922,28 @@ public class FATHandler
 
         }
     };
+
+    private class CacheThread extends Thread
+    {
+        @Override
+        public void run()
+        {
+            Looper.prepare();
+            wHandler = new Handler()
+            {
+                @Override
+                public void handleMessage(Message msg)
+                {
+                    switch(msg.what)
+                    {
+                        case LOAD_CACHE:
+                            break;
+                        case FIND_EMPTY_CLUSTERCHAIN:
+                            break;
+                    }
+                }
+            };
+            Looper.loop();
+        }
+    }
 }
