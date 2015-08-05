@@ -35,6 +35,7 @@ public class FATHandler
 
     private SCSICommunicator comm;
     private final Object monitor;
+    private final Object cacheMonitor;
     private SCSIResponse currentResponse;
     private boolean currentStatus;
     private AtomicBoolean waiting;
@@ -55,6 +56,7 @@ public class FATHandler
     {
         this.comm = new SCSICommunicator(mDevice, mConnection);
         this.monitor = new Object();
+        this.cacheMonitor = new Object();
         this.path = new Path();
         this.waiting = new AtomicBoolean(true);
     }
@@ -926,6 +928,13 @@ public class FATHandler
 
     private class CacheThread extends Thread
     {
+        private AtomicBoolean keep;
+
+        public CacheThread()
+        {
+            keep = new AtomicBoolean(false);
+        }
+
         @Override
         public void run()
         {
@@ -948,6 +957,41 @@ public class FATHandler
             Looper.loop();
         }
 
+        public boolean isCacheReading()
+        {
+            //TODO: Used by fatHandler calls to know when they can write/read at the same time cache is messing around
+            synchronized(cacheMonitor)
+            {
+
+            }
+            return true;
+        }
+
+        private void notifyCacheRead()
+        {
+            synchronized(cacheMonitor)
+            {
+                cacheMonitor.notify();
+            }
+        }
+
+        private void waitToIdle()
+        {
+            synchronized(cacheMonitor)
+            {
+                while(keep.get())
+                {
+                    try
+                    {
+                        cacheMonitor.wait();
+                    }catch(InterruptedException e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
         private void populateCache()
         {
             long lbaFATStart = getEntryLBA(0);
@@ -955,10 +999,13 @@ public class FATHandler
 
             for(long i=lbaFATStart;i<=lbaFATEnd-1;i++)
             {
-                //TODO: Low priority operations, if user performs any operation just wait.
+                waitToIdle(); // Wait if the user performs a operation (write new file, read file...)
+
                 byte[] rawFATLba = readBytes(i, 1);
                 if(isCacheable(rawFATLba))
                     cache.addCluster(i);
+
+                notifyCacheRead(); // Notify to a wating user operation
             }
         }
 
