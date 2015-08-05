@@ -82,41 +82,63 @@ public class VirtualFileSystem
 
     public boolean changeDir(String dirName)
     {
-        return fatHandler.changeDir(dirName);
+        fatHandler.stopCaching();
+        boolean result = fatHandler.changeDir(dirName);
+        fatHandler.continueCaching();
+        return result;
     }
 
     public boolean changeDir(VFSFile file)
     {
-        return fatHandler.changeDir(file.getFileName());
+        fatHandler.stopCaching();
+        boolean result = fatHandler.changeDir(file.getFileName());
+        fatHandler.continueCaching();
+        return result;
     }
 
     public boolean changeDirBack()
     {
-        return fatHandler.changeDirBack();
+        fatHandler.stopCaching();
+        boolean result = fatHandler.changeDirBack();
+        fatHandler.continueCaching();
+        return result;
     }
 
     public boolean writeFile(File file)
     {
-        return fatHandler.writeNewFile(file);
+        fatHandler.stopCaching();
+        boolean result = fatHandler.writeNewFile(file);
+        fatHandler.continueCaching();
+        return result;
     }
 
     public byte[] readFile(String fileName)
     {
-        return fatHandler.readFile(fileName);
+        fatHandler.stopCaching();
+        byte[] data = fatHandler.readFile(fileName);
+        fatHandler.continueCaching();
+        return data;
     }
 
     public byte[] readFile(VFSFile file)
     {
-        return fatHandler.readFile(file.getFileName());
+        fatHandler.stopCaching();
+        byte[] data = fatHandler.readFile(file.getFileName());
+        fatHandler.continueCaching();
+        return data;
     }
 
     public boolean deleteFile(String fileName)
     {
-        return fatHandler.deleteFile(fileName);
+        fatHandler.stopCaching();
+        boolean result = fatHandler.deleteFile(fileName);
+        fatHandler.continueCaching();
+        return result;
     }
 
     public boolean unMount()
     {
+        fatHandler.stopCaching();
         return fatHandler.unMount();
     }
 }

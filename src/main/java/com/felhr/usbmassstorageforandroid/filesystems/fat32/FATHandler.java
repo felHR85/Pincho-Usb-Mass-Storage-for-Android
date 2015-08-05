@@ -59,6 +59,7 @@ public class FATHandler
         this.cacheMonitor = new Object();
         this.path = new Path();
         this.waiting = new AtomicBoolean(true);
+        this.cacheThread = new CacheThread();
     }
 
     public boolean mount(int partitionIndex)
@@ -84,6 +85,11 @@ public class FATHandler
             List<Long> clustersRoot = getClusterChain(2);
             byte[] data = readClusters(clustersRoot);
             path.setDirectoryContent(getFileEntries(data));
+
+            cacheThread.start();
+            while(wHandler == null){}
+            wHandler.obtainMessage(LOAD_CACHE).sendToTarget();
+
             return true;
         }else
         {
@@ -128,6 +134,7 @@ public class FATHandler
                 return true;
             }
         }
+
         return false;
     }
 
@@ -224,7 +231,7 @@ public class FATHandler
                     return false;
                 }
 
-            }catch (FileNotFoundException e)
+            }catch(FileNotFoundException e)
             {
                 e.printStackTrace();
                 return false;
@@ -408,6 +415,16 @@ public class FATHandler
             i++;
         }
         return false;
+    }
+
+    public void stopCaching()
+    {
+        cacheThread.stopCaching();
+    }
+
+    public void continueCaching()
+    {
+        cacheThread.continueCaching();
     }
 
     private void testUnitReady()
@@ -929,10 +946,12 @@ public class FATHandler
     private class CacheThread extends Thread
     {
         private AtomicBoolean keep;
+        private AtomicBoolean cacheReading;
 
         public CacheThread()
         {
             keep = new AtomicBoolean(false);
+            cacheReading = new AtomicBoolean(false);
         }
 
         @Override
@@ -957,20 +976,37 @@ public class FATHandler
             Looper.loop();
         }
 
-        public boolean isCacheReading()
+        public boolean stopCaching()
         {
-            //TODO: Used by fatHandler calls to know when they can write/read at the same time cache is messing around
             synchronized(cacheMonitor)
             {
-
+                while(cacheReading.get())
+                {
+                    try
+                    {
+                        cacheMonitor.wait();
+                    }catch (InterruptedException e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
             }
             return true;
+        }
+
+        public void continueCaching()
+        {
+            synchronized(cacheMonitor)
+            {
+                cacheMonitor.notify();
+            }
         }
 
         private void notifyCacheRead()
         {
             synchronized(cacheMonitor)
             {
+                cacheReading.set(false);
                 cacheMonitor.notify();
             }
         }
@@ -1000,12 +1036,13 @@ public class FATHandler
             for(long i=lbaFATStart;i<=lbaFATEnd-1;i++)
             {
                 waitToIdle(); // Wait if the user performs a operation (write new file, read file...)
+                cacheReading.set(true);
 
                 byte[] rawFATLba = readBytes(i, 1);
                 if(isCacheable(rawFATLba))
                     cache.addCluster(i);
 
-                notifyCacheRead(); // Notify to a wating user operation
+                notifyCacheRead(); // Notify to a waiting user operation
             }
         }
 
