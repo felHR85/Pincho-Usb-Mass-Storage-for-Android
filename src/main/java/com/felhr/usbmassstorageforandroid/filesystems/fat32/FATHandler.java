@@ -309,13 +309,13 @@ public class FATHandler
             {
                 clusters = 1;
             }
-            fileClusterChain = setClusterChain(clusters);
+            fileClusterChain = setClusterChain(clusters, true);
             if(fileClusterChain == null) // It was no possible to get a clusterchain
                 return false;
         }else
         {
             // It is a dir, it just needs one cluster at least at this moment
-            fileClusterChain = setClusterChain(1);
+            fileClusterChain = setClusterChain(1, true);
             if(fileClusterChain == null) // It was no possible to get a clusterchain
                 return false;
         }
@@ -469,14 +469,22 @@ public class FATHandler
       Set a clusterchain on the FAT
       Return null if is not possible to get clusterchain
      */
-    private List<Long> setClusterChain(int clusters)
+    private List<Long> setClusterChain(int clusters, boolean forceCache)
     {
         List<Long> clusterChainList = new ArrayList<Long>();
         long[] lbaChain = new long[clusters];
         int[] entries = new int[clusters]; // 0-127 range
         int i = 0; // index for clusterchain
         long lbaFatStart = getEntryLBA(0);
-        long lbaIndex = lbaFatStart;
+        long lbaIndex;
+        if(!forceCache)
+            lbaIndex = lbaFatStart;
+        else
+        {
+            lbaIndex = cache.getCluster();
+            if(lbaIndex == 0) // No sectors in the cache
+                lbaIndex = lbaFatStart;
+        }
         long lbaFatEnd = lbaFatStart + reservedRegion.getNumberSectorsPerFat();
         boolean keep = true;
         while(keep)
@@ -521,10 +529,19 @@ public class FATHandler
                     }
                 }
             }
-            lbaIndex++;
+            if(!forceCache)
+                lbaIndex++;
+            else
+            {
+                lbaIndex = cache.getCluster();
+                if(lbaIndex == 0)
+                    lbaIndex = lbaIndex++;
+            }
             if(lbaIndex > lbaFatEnd)
                 return null;
         }
+        if(forceCache)
+            cache.resetIndex();
         return clusterChainList;
     }
 
@@ -1031,7 +1048,7 @@ public class FATHandler
         private void populateCache()
         {
             long lbaFATStart = getEntryLBA(0);
-            long lbaFATEnd = getEntryLBA(0) + reservedRegion.getNumberSectorsPerFat();
+            long lbaFATEnd = lbaFATStart + reservedRegion.getNumberSectorsPerFat();
 
             for(long i=lbaFATStart;i<=lbaFATEnd-1;i++)
             {
