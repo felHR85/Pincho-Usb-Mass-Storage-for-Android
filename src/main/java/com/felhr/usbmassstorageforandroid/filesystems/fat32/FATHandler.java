@@ -990,8 +990,8 @@ public class FATHandler
                         e.printStackTrace();
                     }
                 }
+                return true;
             }
-            return true;
         }
 
         public void continueCaching()
@@ -1046,10 +1046,22 @@ public class FATHandler
             }
         }
 
+        /*
+            Consider the sector cacheable if at least 1/4 is available
+         */
         private boolean isCacheable(byte[] rawSector)
         {
+            int counter = 0;
+            for(int j=0;j<=rawSector.length-1;j+=4)
+            {
+                long entry = UnsignedUtil.convertBytes2Long(rawSector[j+3],
+                        rawSector[j+2], rawSector[j+1], rawSector[j]);
+                if(entry == 0)
+                    counter++;
+                if(counter > 31)
+                    return true;
+            }
             return true;
         }
-
     }
 }
