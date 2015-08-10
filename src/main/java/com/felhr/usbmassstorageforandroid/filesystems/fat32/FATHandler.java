@@ -527,6 +527,9 @@ public class FATHandler
                         keep = false;
                         break;
                     }
+                }else if(forceCache && value != 0x0000000 && indexEntry == 127) //full cluster, delete it from cache
+                {
+                    cache.deleteCluster();
                 }
             }
             if(!forceCache)
@@ -540,8 +543,7 @@ public class FATHandler
             if(lbaIndex > lbaFatEnd)
                 return null;
         }
-        if(forceCache)
-            cache.resetIndex();
+
         return clusterChainList;
     }
 
