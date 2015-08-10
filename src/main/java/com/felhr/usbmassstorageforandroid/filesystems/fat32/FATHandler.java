@@ -5,6 +5,7 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 
 import com.felhr.usbmassstorageforandroid.filesystems.MasterBootRecord;
 import com.felhr.usbmassstorageforandroid.filesystems.Partition;
@@ -57,6 +58,7 @@ public class FATHandler
         this.comm = new SCSICommunicator(mDevice, mConnection);
         this.monitor = new Object();
         this.cacheMonitor = new Object();
+        this.cache = new FAT32Cache();
         this.path = new Path();
         this.waiting = new AtomicBoolean(true);
         this.cacheThread = new CacheThread();
@@ -538,7 +540,7 @@ public class FATHandler
             {
                 lbaIndex = cache.getCluster();
                 if(lbaIndex == 0)
-                    lbaIndex = lbaIndex++;
+                    lbaIndex += 2; // No more clusters in cache.
             }
             if(lbaIndex > lbaFatEnd)
                 return null;
@@ -1077,10 +1079,10 @@ public class FATHandler
                         rawSector[j+2], rawSector[j+1], rawSector[j]);
                 if(entry == 0)
                     counter++;
-                if(counter > 31)
+                if(counter > 100)
                     return true;
             }
-            return true;
+            return false;
         }
     }
 }
