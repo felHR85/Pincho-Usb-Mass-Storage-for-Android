@@ -19,7 +19,6 @@ public class FAT32Cache
 
     public synchronized void addCluster(long cluster)
     {
-        Log.i("CACHE", "Cluster: " +  String.valueOf(cluster));
         clusterList.add(cluster);
     }
 

@@ -286,6 +286,7 @@ public class FATHandler
         // There is no space for a new entry. resize the folder.
         if(path.getFreeEntries() < fileEntriesRequired)
         {
+            Log.i("WRITE FILE", "RESIZE");
             long lastCluster = clusterChain.get(clusterChain.size()-1);
             long newLastCluster = resizeClusterChain(lastCluster);
             int freeEntriesNewCluster = (int) (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()) / 32;
@@ -529,18 +530,22 @@ public class FATHandler
                         keep = false;
                         break;
                     }
-                }else if(forceCache && value != 0x0000000 && indexEntry == 127) //full cluster, delete it from cache
-                {
-                    cache.deleteCluster();
-                }
+                }//else if(forceCache && value != 0x0000000 && indexEntry == 127) //full cluster, delete it from cache
+                //{
+                    //cache.deleteCluster();
+                //}
             }
             if(!forceCache)
                 lbaIndex++;
             else
             {
-                lbaIndex = cache.getCluster();
-                if(lbaIndex == 0)
-                    lbaIndex += 2; // No more clusters in cache.
+                if(keep)
+                {
+                    cache.deleteCluster();
+                    lbaIndex = cache.getCluster();
+                    if (lbaIndex == 0)
+                        lbaIndex += 2; // No more clusters in cache.
+                }
             }
             if(lbaIndex > lbaFatEnd)
                 return null;
