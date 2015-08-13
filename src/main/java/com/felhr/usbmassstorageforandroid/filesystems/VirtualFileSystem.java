@@ -16,6 +16,11 @@ import java.util.List;
  */
 public class VirtualFileSystem
 {
+    public static final int CACHE_NONE = 0; // No cache
+    public static final int CACHE_LOW = 1; // Cache for a 100 Mbytes allocation
+    public static final int CACHE_MEDIUM = 2; // Cache half of the FAT
+    public static final int CACHE_HIGH = 3; // Cache the whole FAT
+
     private FATHandler fatHandler;
 
     public VirtualFileSystem(UsbDevice mDevice, UsbDeviceConnection mConnection)
@@ -25,7 +30,12 @@ public class VirtualFileSystem
 
     public boolean mount(int index)
     {
-        return fatHandler.mount(index);
+        return fatHandler.mount(index, CACHE_NONE);
+    }
+
+    public boolean mount(int index, int cacheMode)
+    {
+        return fatHandler.mount(index, cacheMode);
     }
 
     public List<String> list()
@@ -82,63 +92,48 @@ public class VirtualFileSystem
 
     public boolean changeDir(String dirName)
     {
-        fatHandler.stopCaching();
         boolean result = fatHandler.changeDir(dirName);
-        fatHandler.continueCaching();
         return result;
     }
 
     public boolean changeDir(VFSFile file)
     {
-        fatHandler.stopCaching();
         boolean result = fatHandler.changeDir(file.getFileName());
-        fatHandler.continueCaching();
         return result;
     }
 
     public boolean changeDirBack()
     {
-        fatHandler.stopCaching();
         boolean result = fatHandler.changeDirBack();
-        fatHandler.continueCaching();
         return result;
     }
 
     public boolean writeFile(File file)
     {
-        fatHandler.stopCaching();
         boolean result = fatHandler.writeNewFile(file);
-        fatHandler.continueCaching();
         return result;
     }
 
     public byte[] readFile(String fileName)
     {
-        fatHandler.stopCaching();
         byte[] data = fatHandler.readFile(fileName);
-        fatHandler.continueCaching();
         return data;
     }
 
     public byte[] readFile(VFSFile file)
     {
-        fatHandler.stopCaching();
         byte[] data = fatHandler.readFile(file.getFileName());
-        fatHandler.continueCaching();
         return data;
     }
 
     public boolean deleteFile(String fileName)
     {
-        fatHandler.stopCaching();
         boolean result = fatHandler.deleteFile(fileName);
-        fatHandler.continueCaching();
         return result;
     }
 
     public boolean unMount()
     {
-        fatHandler.stopCaching();
         return fatHandler.unMount();
     }
 }

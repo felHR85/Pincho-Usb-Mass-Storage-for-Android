@@ -5,6 +5,7 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 
 import com.felhr.usbmassstorageforandroid.filesystems.MasterBootRecord;
 import com.felhr.usbmassstorageforandroid.filesystems.Partition;
@@ -63,7 +64,7 @@ public class FATHandler
         this.cacheThread = new CacheThread();
     }
 
-    public boolean mount(int partitionIndex)
+    public boolean mount(int partitionIndex, int cacheMode)
     {
         boolean isOpen = comm.openSCSICommunicator(scsiInterface);
 
@@ -87,10 +88,13 @@ public class FATHandler
             byte[] data = readClusters(clustersRoot);
             path.setDirectoryContent(getFileEntries(data));
 
-            cacheThread.start();
-            while(wHandler == null){}
-            wHandler.obtainMessage(LOAD_CACHE).sendToTarget();
-
+            if(cacheMode != 0)
+            {
+                cacheThread.start();
+                while(wHandler == null){}
+                wHandler.obtainMessage(LOAD_CACHE, cacheMode, 0).sendToTarget();
+                cacheThread.waitTillCaching();
+            }
             return true;
         }else
         {
@@ -416,16 +420,6 @@ public class FATHandler
             i++;
         }
         return false;
-    }
-
-    public void stopCaching()
-    {
-        cacheThread.stopCaching();
-    }
-
-    public void continueCaching()
-    {
-        cacheThread.continueCaching();
     }
 
     private void testUnitReady()
@@ -981,11 +975,12 @@ public class FATHandler
     {
         private AtomicBoolean keep;
         private AtomicBoolean cacheReading;
+        private int maxElements;
 
         public CacheThread()
         {
             keep = new AtomicBoolean(false);
-            cacheReading = new AtomicBoolean(false);
+            cacheReading = new AtomicBoolean(true);
         }
 
         @Override
@@ -1000,7 +995,7 @@ public class FATHandler
                     switch(msg.what)
                     {
                         case LOAD_CACHE:
-                            populateCache();
+                            populateCache(msg.arg1);
                             break;
                         case FIND_EMPTY_CLUSTERCHAIN:
                             break;
@@ -1010,7 +1005,7 @@ public class FATHandler
             Looper.loop();
         }
 
-        public boolean stopCaching()
+        public boolean waitTillCaching()
         {
             synchronized(cacheMonitor)
             {
@@ -1028,15 +1023,7 @@ public class FATHandler
             }
         }
 
-        public void continueCaching()
-        {
-            synchronized(cacheMonitor)
-            {
-                cacheMonitor.notify();
-            }
-        }
-
-        private void notifyCacheRead()
+        public void notifyCacheRead()
         {
             synchronized(cacheMonitor)
             {
@@ -1045,39 +1032,34 @@ public class FATHandler
             }
         }
 
-        private void waitToIdle()
+        private void populateCache(int cacheMode)
         {
-            synchronized(cacheMonitor)
-            {
-                while(keep.get())
-                {
-                    try
-                    {
-                        cacheMonitor.wait();
-                    }catch(InterruptedException e)
-                    {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
+            int j = 0;
 
-        private void populateCache()
-        {
             long lbaFATStart = getEntryLBA(0);
             long lbaFATEnd = lbaFATStart + reservedRegion.getNumberSectorsPerFat();
 
+            if(cacheMode == 1) // Low Cache
+                maxElements = 200;
+            else if(cacheMode == 2) // Medium Cache
+                maxElements = (int) (reservedRegion.getNumberSectorsPerFat() / 2);
+            else if(cacheMode == 3) // High Cache
+                maxElements = (int) reservedRegion.getNumberSectorsPerFat();
+
             for(long i=lbaFATStart;i<=lbaFATEnd-1;i++)
             {
-                waitToIdle(); // Wait if the user performs a operation (write new file, read file...)
-                cacheReading.set(true);
-
                 byte[] rawFATLba = readBytes(i, 1);
                 if(isCacheable(rawFATLba))
+                {
                     cache.addCluster(i);
-
-                notifyCacheRead(); // Notify to a waiting user operation
+                    if(++j == maxElements)
+                    {
+                        notifyCacheRead();
+                        return;
+                    }
+                }
             }
+            notifyCacheRead();
         }
 
         /*
