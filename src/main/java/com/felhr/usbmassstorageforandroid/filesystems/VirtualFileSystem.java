@@ -16,6 +16,11 @@ import java.util.List;
  */
 public class VirtualFileSystem
 {
+    public static final int CACHE_NONE = 0; // No cache
+    public static final int CACHE_LOW = 1; // Cache for a 100 Mbytes allocation
+    public static final int CACHE_MEDIUM = 2; // Cache half of the FAT
+    public static final int CACHE_HIGH = 3; // Cache the whole FAT
+
     private FATHandler fatHandler;
 
     public VirtualFileSystem(UsbDevice mDevice, UsbDeviceConnection mConnection)
@@ -25,7 +30,12 @@ public class VirtualFileSystem
 
     public boolean mount(int index)
     {
-        return fatHandler.mount(index);
+        return fatHandler.mount(index, CACHE_NONE);
+    }
+
+    public boolean mount(int index, int cacheMode)
+    {
+        return fatHandler.mount(index, cacheMode);
     }
 
     public List<String> list()
@@ -82,37 +92,44 @@ public class VirtualFileSystem
 
     public boolean changeDir(String dirName)
     {
-        return fatHandler.changeDir(dirName);
+        boolean result = fatHandler.changeDir(dirName);
+        return result;
     }
 
     public boolean changeDir(VFSFile file)
     {
-        return fatHandler.changeDir(file.getFileName());
+        boolean result = fatHandler.changeDir(file.getFileName());
+        return result;
     }
 
     public boolean changeDirBack()
     {
-        return fatHandler.changeDirBack();
+        boolean result = fatHandler.changeDirBack();
+        return result;
     }
 
     public boolean writeFile(File file)
     {
-        return fatHandler.writeNewFile(file);
+        boolean result = fatHandler.writeNewFile(file);
+        return result;
     }
 
     public byte[] readFile(String fileName)
     {
-        return fatHandler.readFile(fileName);
+        byte[] data = fatHandler.readFile(fileName);
+        return data;
     }
 
     public byte[] readFile(VFSFile file)
     {
-        return fatHandler.readFile(file.getFileName());
+        byte[] data = fatHandler.readFile(file.getFileName());
+        return data;
     }
 
     public boolean deleteFile(String fileName)
     {
-        return fatHandler.deleteFile(fileName);
+        boolean result = fatHandler.deleteFile(fileName);
+        return result;
     }
 
     public boolean unMount()

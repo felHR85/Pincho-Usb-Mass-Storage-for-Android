@@ -2,6 +2,10 @@ package com.felhr.usbmassstorageforandroid.filesystems.fat32;
 
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.util.Log;
 
 import com.felhr.usbmassstorageforandroid.filesystems.MasterBootRecord;
 import com.felhr.usbmassstorageforandroid.filesystems.Partition;
@@ -27,8 +31,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class FATHandler
 {
+    private static final int LOAD_CACHE = 0;
+    private static final int FIND_EMPTY_CLUSTERCHAIN = 1;
+
     private SCSICommunicator comm;
     private final Object monitor;
+    private final Object cacheMonitor;
     private SCSIResponse currentResponse;
     private boolean currentStatus;
     private AtomicBoolean waiting;
@@ -40,15 +48,23 @@ public class FATHandler
     private ReservedRegion reservedRegion;
     private Path path;
 
+    //CacheThread vars
+    private Handler wHandler;
+    private FAT32Cache cache;
+    private CacheThread cacheThread;
+
     public FATHandler(UsbDevice mDevice, UsbDeviceConnection mConnection)
     {
         this.comm = new SCSICommunicator(mDevice, mConnection);
         this.monitor = new Object();
+        this.cacheMonitor = new Object();
+        this.cache = new FAT32Cache();
         this.path = new Path();
         this.waiting = new AtomicBoolean(true);
+        this.cacheThread = new CacheThread();
     }
 
-    public boolean mount(int partitionIndex)
+    public boolean mount(int partitionIndex, int cacheMode)
     {
         boolean isOpen = comm.openSCSICommunicator(scsiInterface);
 
@@ -71,6 +87,14 @@ public class FATHandler
             List<Long> clustersRoot = getClusterChain(2);
             byte[] data = readClusters(clustersRoot);
             path.setDirectoryContent(getFileEntries(data));
+
+            if(cacheMode != 0)
+            {
+                cacheThread.start();
+                while(wHandler == null){}
+                wHandler.obtainMessage(LOAD_CACHE, cacheMode, 0).sendToTarget();
+                cacheThread.waitTillCaching();
+            }
             return true;
         }else
         {
@@ -115,6 +139,7 @@ public class FATHandler
                 return true;
             }
         }
+
         return false;
     }
 
@@ -211,7 +236,7 @@ public class FATHandler
                     return false;
                 }
 
-            }catch (FileNotFoundException e)
+            }catch(FileNotFoundException e)
             {
                 e.printStackTrace();
                 return false;
@@ -289,13 +314,13 @@ public class FATHandler
             {
                 clusters = 1;
             }
-            fileClusterChain = setClusterChain(clusters);
+            fileClusterChain = setClusterChain(clusters, true);
             if(fileClusterChain == null) // It was no possible to get a clusterchain
                 return false;
         }else
         {
             // It is a dir, it just needs one cluster at least at this moment
-            fileClusterChain = setClusterChain(1);
+            fileClusterChain = setClusterChain(1, true);
             if(fileClusterChain == null) // It was no possible to get a clusterchain
                 return false;
         }
@@ -412,6 +437,10 @@ public class FATHandler
             return null;
     }
 
+    /*
+        Optimization required: if next cluster pointer is the next sector
+        there is no need to use readBytes again.
+     */
     private List<Long> getClusterChain(long cluster)
     {
         boolean keepSearching = true;
@@ -439,14 +468,22 @@ public class FATHandler
       Set a clusterchain on the FAT
       Return null if is not possible to get clusterchain
      */
-    private List<Long> setClusterChain(int clusters)
+    private List<Long> setClusterChain(int clusters, boolean forceCache)
     {
         List<Long> clusterChainList = new ArrayList<Long>();
         long[] lbaChain = new long[clusters];
         int[] entries = new int[clusters]; // 0-127 range
         int i = 0; // index for clusterchain
         long lbaFatStart = getEntryLBA(0);
-        long lbaIndex = lbaFatStart;
+        long lbaIndex;
+        if(!forceCache)
+            lbaIndex = lbaFatStart;
+        else
+        {
+            lbaIndex = cache.getCluster();
+            if(lbaIndex == 0) // No sectors in the cache
+                lbaIndex = lbaFatStart;
+        }
         long lbaFatEnd = lbaFatStart + reservedRegion.getNumberSectorsPerFat();
         boolean keep = true;
         while(keep)
@@ -491,10 +528,22 @@ public class FATHandler
                     }
                 }
             }
-            lbaIndex++;
+            if(!forceCache)
+                lbaIndex++;
+            else
+            {
+                if(keep)
+                {
+                    cache.deleteCluster();
+                    lbaIndex = cache.getCluster();
+                    if (lbaIndex == 0)
+                        lbaIndex += 2; // No more clusters in cache.
+                }
+            }
             if(lbaIndex > lbaFatEnd)
                 return null;
         }
+
         return clusterChainList;
     }
 
@@ -526,7 +575,16 @@ public class FATHandler
                     writeClusters(singleList, zeroedCluster); // Set the referred cluster to 0x00 (whole cluster is empty)
 
                     // Previous last cluster FAT entry now points to the new last cluster
-                    byte[] dataPrevLBA = readBytes(lbaFATLastCluster, 1);
+                    byte[] dataPrevLBA;
+
+                    if(lbaFATLastCluster == indexFat)
+                    {
+                        dataPrevLBA = data;
+                    }else
+                    {
+                        dataPrevLBA = readBytes(lbaFATLastCluster, 1);
+                    }
+
                     sectorIndex = getEntrySectorIndex(lastCluster); // 0-127
                     int[] prevIndexes = getRealIndexes(sectorIndex);
                     byte[] lastClusterRaw = UnsignedUtil.convertULong2Bytes(clusterEntry);
@@ -537,7 +595,7 @@ public class FATHandler
                     if(!writeBytes(lbaFATLastCluster, dataPrevLBA))
                         return 0;
 
-                    // Current last cluster FAT entry points to NUL 0xfff...
+                    // Current last cluster FAT entry points to NUL (0xfffffff)
                     lastClusterRaw = UnsignedUtil.convertULong2Bytes(0xfffffff);
                     data[indexes[0]] = lastClusterRaw[3];
                     data[indexes[1]] = lastClusterRaw[2];
@@ -912,4 +970,114 @@ public class FATHandler
 
         }
     };
+
+    private class CacheThread extends Thread
+    {
+        private AtomicBoolean keep;
+        private AtomicBoolean cacheReading;
+        private int maxElements;
+
+        public CacheThread()
+        {
+            keep = new AtomicBoolean(false);
+            cacheReading = new AtomicBoolean(true);
+        }
+
+        @Override
+        public void run()
+        {
+            Looper.prepare();
+            wHandler = new Handler()
+            {
+                @Override
+                public void handleMessage(Message msg)
+                {
+                    switch(msg.what)
+                    {
+                        case LOAD_CACHE:
+                            populateCache(msg.arg1);
+                            break;
+                        case FIND_EMPTY_CLUSTERCHAIN:
+                            break;
+                    }
+                }
+            };
+            Looper.loop();
+        }
+
+        public boolean waitTillCaching()
+        {
+            synchronized(cacheMonitor)
+            {
+                while(cacheReading.get())
+                {
+                    try
+                    {
+                        cacheMonitor.wait();
+                    }catch (InterruptedException e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+                return true;
+            }
+        }
+
+        public void notifyCacheRead()
+        {
+            synchronized(cacheMonitor)
+            {
+                cacheReading.set(false);
+                cacheMonitor.notify();
+            }
+        }
+
+        private void populateCache(int cacheMode)
+        {
+            int j = 0;
+
+            long lbaFATStart = getEntryLBA(0);
+            long lbaFATEnd = lbaFATStart + reservedRegion.getNumberSectorsPerFat();
+
+            if(cacheMode == 1) // Low Cache
+                maxElements = 200;
+            else if(cacheMode == 2) // Medium Cache
+                maxElements = (int) (reservedRegion.getNumberSectorsPerFat() / 2);
+            else if(cacheMode == 3) // High Cache
+                maxElements = (int) reservedRegion.getNumberSectorsPerFat();
+
+            for(long i=lbaFATStart;i<=lbaFATEnd-1;i++)
+            {
+                byte[] rawFATLba = readBytes(i, 1);
+                if(isCacheable(rawFATLba))
+                {
+                    cache.addCluster(i);
+                    if(++j == maxElements)
+                    {
+                        notifyCacheRead();
+                        return;
+                    }
+                }
+            }
+            notifyCacheRead();
+        }
+
+        /*
+            Consider the sector cacheable if at least 1/4 is available
+         */
+        private boolean isCacheable(byte[] rawSector)
+        {
+            int counter = 0;
+            for(int j=0;j<=rawSector.length-1;j+=4)
+            {
+                long entry = UnsignedUtil.convertBytes2Long(rawSector[j+3],
+                        rawSector[j+2], rawSector[j+1], rawSector[j]);
+                if(entry == 0)
+                    counter++;
+                if(counter > 100)
+                    return true;
+            }
+            return false;
+        }
+    }
 }
