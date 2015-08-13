@@ -5,7 +5,6 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 
 import com.felhr.usbmassstorageforandroid.filesystems.MasterBootRecord;
 import com.felhr.usbmassstorageforandroid.filesystems.Partition;
@@ -286,7 +285,6 @@ public class FATHandler
         // There is no space for a new entry. resize the folder.
         if(path.getFreeEntries() < fileEntriesRequired)
         {
-            Log.i("WRITE FILE", "RESIZE");
             long lastCluster = clusterChain.get(clusterChain.size()-1);
             long newLastCluster = resizeClusterChain(lastCluster);
             int freeEntriesNewCluster = (int) (reservedRegion.getSectorsPerCluster() * reservedRegion.getBytesPerSector()) / 32;
@@ -445,6 +443,10 @@ public class FATHandler
             return null;
     }
 
+    /*
+        Optimization required: if next cluster pointer is the next sector
+        there is no need to use readBytes again.
+     */
     private List<Long> getClusterChain(long cluster)
     {
         boolean keepSearching = true;
@@ -530,10 +532,7 @@ public class FATHandler
                         keep = false;
                         break;
                     }
-                }//else if(forceCache && value != 0x0000000 && indexEntry == 127) //full cluster, delete it from cache
-                //{
-                    //cache.deleteCluster();
-                //}
+                }
             }
             if(!forceCache)
                 lbaIndex++;
@@ -582,7 +581,16 @@ public class FATHandler
                     writeClusters(singleList, zeroedCluster); // Set the referred cluster to 0x00 (whole cluster is empty)
 
                     // Previous last cluster FAT entry now points to the new last cluster
-                    byte[] dataPrevLBA = readBytes(lbaFATLastCluster, 1);
+                    byte[] dataPrevLBA;
+
+                    if(lbaFATLastCluster == indexFat)
+                    {
+                        dataPrevLBA = data;
+                    }else
+                    {
+                        dataPrevLBA = readBytes(lbaFATLastCluster, 1);
+                    }
+
                     sectorIndex = getEntrySectorIndex(lastCluster); // 0-127
                     int[] prevIndexes = getRealIndexes(sectorIndex);
                     byte[] lastClusterRaw = UnsignedUtil.convertULong2Bytes(clusterEntry);
@@ -593,7 +601,7 @@ public class FATHandler
                     if(!writeBytes(lbaFATLastCluster, dataPrevLBA))
                         return 0;
 
-                    // Current last cluster FAT entry points to NUL 0xfff...
+                    // Current last cluster FAT entry points to NUL (0xfffffff)
                     lastClusterRaw = UnsignedUtil.convertULong2Bytes(0xfffffff);
                     data[indexes[0]] = lastClusterRaw[3];
                     data[indexes[1]] = lastClusterRaw[2];
